@@ -76,7 +76,6 @@ import com.example.todoapp.ui.theme.CardShape
 import com.example.todoapp.ui.theme.Coral100
 import com.example.todoapp.ui.theme.Coral500
 import com.example.todoapp.ui.theme.ErrorRose
-import com.example.todoapp.ui.theme.Lemon100
 import com.example.todoapp.ui.theme.Mint100
 import com.example.todoapp.ui.theme.Mint500
 import com.example.todoapp.ui.theme.Neutral200
@@ -283,7 +282,7 @@ fun TaskCard(
 ) {
     // ── Animated state variables ──────────────────────────────────────────────
     val cardColor by animateColorAsState(
-        targetValue = if (task.isDone) Lemon100 else MaterialTheme.colorScheme.surface,
+        targetValue = if (task.isDone) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
         animationSpec = tween(400),
         label = "card_color",
     )

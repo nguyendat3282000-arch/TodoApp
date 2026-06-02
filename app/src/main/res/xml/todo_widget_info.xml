@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AppWidget provider metadata for TodoWidget (Jetpack Glance).
+
+    Cell sizes reference (standard Android grid):
+      1 cell  ≈  57 dp
+      2 cells ≈ 110 dp  (minWidth / minHeight for a 2×2 default)
+      3 cells ≈ 180 dp
+      4 cells ≈ 250 dp
+
+    targetCellWidth / targetCellHeight are used on Android 12+ (API 31+)
+    for the new flexible grid system.  minWidth / minHeight are the fallback
+    for older launchers.
+
+    updatePeriodMillis = 1 800 000 ms = 30 minutes.
+    Note: values < 30 min are silently clamped to 30 min by the OS.
+    Real-time updates are driven by TodoWidgetReceiver.syncAndUpdate() instead.
+
+    initialLayout: shown by the launcher before Glance renders its first frame.
+    Glance replaces it immediately once provideGlance() completes.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_description"
+    android:initialLayout="@layout/todo_widget_initial"
+    android:minWidth="250dp"
+    android:minHeight="180dp"
+    android:previewImage="@mipmap/ic_launcher"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="3"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

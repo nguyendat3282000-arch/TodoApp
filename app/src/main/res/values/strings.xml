@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">TodoApp</string>
+    <string name="widget_name">Todo Today</string>
+    <string name="widget_description">Shows your tasks for today</string>
+
+    <!-- Auth -->
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_email">Sign in with Email</string>
+    <string name="create_account">Create Account</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="already_have_account">Already have an account? Sign in</string>
+    <string name="no_account">Don\'t have an account? Register</string>
+
+    <!-- Task -->
+    <string name="add_task">Add Task</string>
+    <string name="edit_task">Edit Task</string>
+    <string name="delete_task">Delete Task</string>
+    <string name="task_title">Title</string>
+    <string name="task_description">Description (optional)</string>
+    <string name="task_due_date">Due Date</string>
+    <string name="task_due_time">Due Time</string>
+    <string name="mark_done">Mark as Done</string>
+    <string name="mark_undone">Mark as Undone</string>
+    <string name="no_tasks">No tasks yet! Tap + to add one 🎉</string>
+
+    <!-- Alarm -->
+    <string name="alarm_notification_channel_id">todo_alarm_channel</string>
+    <string name="alarm_notification_channel_name">Task Alarms</string>
+    <string name="alarm_notification_channel_desc">Notifications for upcoming task deadlines</string>
+    <string name="alarm_dismiss">Dismiss</string>
+    <string name="alarm_snooze">Snooze 5 min</string>
+    <string name="alarm_ringing">Task Reminder</string>
+
+    <!-- Widget -->
+    <string name="widget_today_tasks">Today\'s Tasks</string>
+    <string name="widget_no_tasks">No tasks today 🌟</string>
+    <string name="widget_open_app">Open App</string>
+</resources>

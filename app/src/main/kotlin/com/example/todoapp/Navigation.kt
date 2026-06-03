@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
@@ -46,7 +47,16 @@ fun TodoNavGraph(
     authViewModel: AuthViewModel,
     onGoogleSignIn: () -> Unit,
 ) {
-    val currentUser by authViewModel.currentUser.collectAsState(initial = null)
+    val initialUser = remember {
+        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.let {
+            com.example.todoapp.domain.model.AuthUser(
+                uid = it.uid,
+                email = it.email,
+                displayName = it.displayName
+            )
+        }
+    }
+    val currentUser by authViewModel.currentUser.collectAsState(initial = initialUser)
 
     val startDest: NavKey = if (currentUser != null) HomeDest else AuthDest
     val backStack = rememberNavBackStack(startDest)
@@ -55,6 +65,7 @@ fun TodoNavGraph(
     LaunchedEffect(currentUser) {
         val last = backStack.lastOrNull()
         if (currentUser != null && last is AuthDest) {
+            backStack.clear()
             backStack.add(HomeDest)
         } else if (currentUser == null && last !is AuthDest) {
             backStack.clear()

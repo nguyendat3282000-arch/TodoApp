@@ -1,8 +1,8 @@
-// File: widget/TodoWidget.kt
 package com.example.todoapp.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -10,9 +10,14 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
@@ -33,38 +38,75 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
-import androidx.glance.text.TextStyle
 import androidx.glance.text.TextDecoration
+import androidx.glance.text.TextStyle
 import com.example.todoapp.MainActivity
 import com.example.todoapp.R
-import androidx.compose.ui.graphics.Color
-import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
 import com.example.todoapp.data.mapper.toDomain
 
+import androidx.glance.appwidget.SizeMode
+import androidx.glance.LocalSize
+import androidx.glance.unit.ColorProvider
+
 class TodoWidget : GlanceAppWidget() {
+
+    override val sizeMode = SizeMode.Exact
 
     private val MAX_TASKS = 5
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // Read the DataStore cache
-        val allTasks   = WidgetDataStore.loadTasksOnce(context)
-        val pending    = allTasks.filter { !it.isDone }.take(MAX_TASKS)
-        val totalCount = allTasks.count { !it.isDone }
-        
-        // Load stats
-        val stats = WidgetDataStore.loadStatsOnce(context)
+        val db = com.example.todoapp.data.local.TodoDatabase.getDatabase(context)
+        val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid
+
+        val allTasks = if (userId != null) {
+            db.taskDao.getTasksForUser(userId).map { it.toDomain() }
+        } else {
+            emptyList()
+        }
+
+        val stats = if (userId != null) {
+            db.taskDao.getUserStats(userId)
+        } else null
+
+        val today = java.time.LocalDate.now().toString()
+        val dayOfWeekVal = java.time.LocalDate.now().dayOfWeek.value
+        val todayTasks = allTasks.filter { 
+            if (it.type == com.example.todoapp.domain.model.TaskType.DAILY) {
+                it.dueDate == today
+            } else {
+                if (it.frequencyType == com.example.todoapp.domain.model.FrequencyType.FIXED) {
+                    it.fixedDays.contains(dayOfWeekVal)
+                } else {
+                    it.lastCompletedDate != today || it.isDone
+                }
+            }
+        }
+
+        // Show pending tasks first, then done tasks, up to MAX_TASKS
+        val pending = todayTasks
+            .filter { !it.isDone }
+            .take(MAX_TASKS)
+            .map { WidgetTask(id = it.id, title = it.title, dueTime = it.dueTime, isDone = it.isDone) }
+        val doneTasks = todayTasks
+            .filter { it.isDone }
+            .take(maxOf(0, MAX_TASKS - pending.size))
+            .map { WidgetTask(id = it.id, title = it.title, dueTime = it.dueTime, isDone = it.isDone) }
+            
+        val displayTasks = pending + doneTasks
+        val totalCount = todayTasks.count { !it.isDone }
+
+        val healthScore = stats?.healthScore ?: 100
+        val streak = stats?.totalStreak ?: 0
 
         provideContent {
             GlanceTheme {
                 WidgetContent(
                     context     = context,
-                    tasks       = pending,
+                    tasks       = displayTasks,
                     totalCount  = totalCount,
-                    healthScore = stats.first,
-                    streak      = stats.second
+                    healthScore = healthScore,
+                    streak      = streak
                 )
             }
         }
@@ -83,68 +125,96 @@ private fun WidgetContent(
     healthScore: Int,
     streak: Int,
 ) {
-    // Soft mint background — Baemin pastel palette
-    val bgColor       = ColorProvider(Color(0xFFE8FAF6))   // Mint100
-    val headerBg      = ColorProvider(Color(0xFF2BBFA0))   // Mint500
-    val cardBg        = ColorProvider(Color(0xFFFFFFFF))
-    val textOnHeader  = ColorProvider(Color.White)
-    val textPrimary   = ColorProvider(Color(0xFF272D34))   // Neutral800
-    val textSecondary = ColorProvider(Color(0xFF636D78))   // Neutral600
-    val doneBg        = ColorProvider(Color(0xFFC5F0E5))   // Mint200
+    // Premium Health App Palette (Clean White/Gray with vibrant accents)
+    val bgColor       = ColorProvider(Color(0xFFF7F9FA), Color(0xFF1C1C1E)) // Light/Dark root bg
+    val surfaceColor  = ColorProvider(Color(0xFFFFFFFF), Color(0xFF2C2C2E)) // Card bg
+    val textPrimary   = ColorProvider(Color(0xFF111111), Color(0xFFFFFFFF))
+    val textSecondary = ColorProvider(Color(0xFF8E8E93), Color(0xFF98989E))
+    
+    val scoreColor    = ColorProvider(Color(0xFFFF3B30), Color(0xFFFF453A)) // Apple Red
+    val streakColor   = ColorProvider(Color(0xFFFF9500), Color(0xFFFF9F0A)) // Orange
+    val doneBg        = ColorProvider(Color(0xFFF2F2F7), Color(0xFF3A3A3C))
 
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(bgColor)
-            .padding(0.dp),
+            .padding(12.dp)
+            .clickable(actionStartActivity<MainActivity>()),
     ) {
+        val size = LocalSize.current
+        val isCompactHeight = size.height < 150.dp
+        
         Column(modifier = GlanceModifier.fillMaxSize()) {
-
-            // ── Header bar ────────────────────────────────────────────────────
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .background(headerBg)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
+            
+            // ── Top Stats Header (Health & Streak) ────────────────────────────
+            if (!isCompactHeight) {
                 Row(
-                    modifier          = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = GlanceModifier.fillMaxWidth().padding(bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        provider    = ImageProvider(R.drawable.ic_alarm_notification),
-                        contentDescription = "Tasks",
-                        modifier    = GlanceModifier.size(18.dp),
-                    )
-                    Spacer(GlanceModifier.width(6.dp))
-                    Text(
-                        text  = "Mục tiêu ($healthScore đ, $streak🔥)",
-                        style = TextStyle(
-                            color      = textOnHeader,
-                            fontSize   = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        modifier = GlanceModifier.defaultWeight(),
-                    )
-                    if (totalCount > 0) {
-                        Box(
-                            modifier = GlanceModifier
-                                .background(ColorProvider(Color(0xFFFF6B4E)))
-                                .padding(horizontal = 7.dp, vertical = 2.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text  = "$totalCount",
-                                style = TextStyle(
-                                    color      = textOnHeader,
-                                    fontSize   = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign  = TextAlign.Center,
-                                ),
-                            )
+                // Health Card
+                Box(
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .background(surfaceColor)
+                        .cornerRadius(16.dp)
+                        .padding(10.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("❤️", style = TextStyle(fontSize = 18.sp))
+                        Spacer(GlanceModifier.width(6.dp))
+                        Column {
+                            Text("Sức khỏe", style = TextStyle(color = textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                            Text("$healthScore", style = TextStyle(color = scoreColor, fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         }
+                    }
+                }
+                
+                Spacer(GlanceModifier.width(8.dp))
+                
+                // Streak Card
+                Box(
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .background(surfaceColor)
+                        .cornerRadius(16.dp)
+                        .padding(10.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🔥", style = TextStyle(fontSize = 18.sp))
+                        Spacer(GlanceModifier.width(6.dp))
+                        Column {
+                            Text("Chuỗi", style = TextStyle(color = textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                            Text("$streak ngày", style = TextStyle(color = streakColor, fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        }
+                    }
+                }
+                } // Close Row
+            } // Close if (!isCompactHeight)
+
+            // ── Section Title ──────────────────────────────────────────────────
+            Row(
+                modifier = GlanceModifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Nhiệm vụ hôm nay",
+                    style = TextStyle(color = textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                    modifier = GlanceModifier.defaultWeight()
+                )
+                if (totalCount > 0) {
+                    Box(
+                        modifier = GlanceModifier.background(scoreColor).cornerRadius(10.dp).padding(horizontal = 6.dp, vertical = 2.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "$totalCount",
+                            style = TextStyle(color = ColorProvider(Color.White, Color.White), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        )
                     }
                 }
             }
@@ -153,49 +223,24 @@ private fun WidgetContent(
             if (tasks.isEmpty()) {
                 EmptyState(
                     modifier   = GlanceModifier.fillMaxSize(),
-                    bgColor    = bgColor,
+                    surfaceColor = surfaceColor,
                     textColor  = textSecondary,
-                    context    = context,
                 )
             } else {
                 LazyColumn(
-                    modifier = GlanceModifier
-                        .fillMaxWidth()
-                        .defaultWeight()
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
                 ) {
                     items(tasks) { task ->
                         TaskRow(
                             task          = task,
-                            cardBg        = cardBg,
+                            cardBg        = surfaceColor,
                             doneBg        = doneBg,
                             textPrimary   = textPrimary,
                             textSecondary = textSecondary,
                         )
-                        Spacer(GlanceModifier.height(5.dp))
+                        Spacer(GlanceModifier.height(6.dp))
                     }
                 }
-            }
-
-            // ── "Open App" footer button ──────────────────────────────────────
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .background(headerBg)
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-                    .clickable(actionStartActivity<MainActivity>()),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text  = "＋  Vào ứng dụng",
-                    style = TextStyle(
-                        color      = textOnHeader,
-                        fontSize   = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign  = TextAlign.Center,
-                    ),
-                )
             }
         }
     }
@@ -218,42 +263,51 @@ private fun TaskRow(
             .fillMaxWidth()
             .wrapContentHeight()
             .background(rowBg)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .cornerRadius(16.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(
             modifier          = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Interactive Checkbox Emoji
-            Text(
-                text = if (task.isDone) "✅" else "⚪",
-                style = TextStyle(fontSize = 16.sp),
+            // Checkbox
+            Box(
                 modifier = GlanceModifier
+                    .size(24.dp)
+                    .background(if (task.isDone) ColorProvider(Color(0xFF34C759), Color(0xFF34C759)) else ColorProvider(Color.Transparent, Color.Transparent))
+                    .cornerRadius(12.dp)
                     .clickable(
                         actionRunCallback<ToggleTaskCallback>(
                             actionParametersOf(ToggleTaskCallback.TaskIdKey to task.id)
                         )
-                    )
-            )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (task.isDone) {
+                    Text("✓", style = TextStyle(color = ColorProvider(Color.White, Color.White), fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                } else {
+                    Text("○", style = TextStyle(color = textSecondary, fontSize = 20.sp))
+                }
+            }
 
-            Spacer(GlanceModifier.width(8.dp))
+            Spacer(GlanceModifier.width(12.dp))
 
             Column(modifier = GlanceModifier.defaultWeight()) {
                 Text(
                     text     = task.title,
                     maxLines = 1,
                     style    = TextStyle(
-                        color      = textPrimary,
-                        fontSize   = 13.sp,
+                        color      = if (task.isDone) textSecondary else textPrimary,
+                        fontSize   = 14.sp,
                         fontWeight = FontWeight.Medium,
                         textDecoration = if (task.isDone) TextDecoration.LineThrough else TextDecoration.None
                     ),
                 )
                 if (task.dueTime.isNotBlank()) {
-                    Spacer(GlanceModifier.height(1.dp))
+                    Spacer(GlanceModifier.height(2.dp))
                     Text(
-                        text  = "⏰ ${task.dueTime}",
+                        text  = task.dueTime,
                         style = TextStyle(
                             color    = textSecondary,
                             fontSize = 11.sp,
@@ -270,38 +324,28 @@ private fun TaskRow(
 @Composable
 private fun EmptyState(
     modifier: GlanceModifier,
-    bgColor: ColorProvider,
+    surfaceColor: ColorProvider,
     textColor: ColorProvider,
-    context: Context,
 ) {
     Box(
-        modifier          = modifier.background(bgColor).padding(16.dp),
+        modifier          = modifier.background(surfaceColor).cornerRadius(16.dp).padding(16.dp),
         contentAlignment  = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text  = "🌟",
-                style = TextStyle(fontSize = 32.sp),
+                text  = "✨",
+                style = TextStyle(fontSize = 28.sp),
             )
             Spacer(GlanceModifier.height(8.dp))
             Text(
-                text  = "Không có mục tiêu nào hôm nay!",
+                text  = "Không có nhiệm vụ nào",
                 style = TextStyle(
                     color      = textColor,
                     fontSize   = 13.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign  = TextAlign.Center,
-                ),
-            )
-            Spacer(GlanceModifier.height(4.dp))
-            Text(
-                text  = "Bấm vào đây để thêm mới ✨",
-                style = TextStyle(
-                    color     = textColor,
-                    fontSize  = 11.sp,
-                    textAlign = TextAlign.Center,
                 ),
             )
         }
@@ -320,20 +364,80 @@ class ToggleTaskCallback : ActionCallback {
         val db = com.example.todoapp.data.local.TodoDatabase.getDatabase(context)
         val taskEntity = db.taskDao.getTaskById(taskId) ?: return
         val newIsDone = !taskEntity.isDone
+        val userId = taskEntity.userId
+        val todayStr = java.time.LocalDate.now().toString()
 
-        // 1. Toggle done in local database
-        db.taskDao.toggleTaskDone(taskId, newIsDone, System.currentTimeMillis())
+        if (newIsDone) {
+            val pointsGained = if (taskEntity.type == "DAILY") {
+                5
+            } else {
+                // HABIT
+                val yesterdayStr = java.time.LocalDate.now().minusDays(1).toString()
+                val newStreak = when (taskEntity.lastCompletedDate) {
+                    yesterdayStr -> taskEntity.streak + 1
+                    todayStr -> taskEntity.streak
+                    else -> 1
+                }
+                val bonus = if (newStreak > 0 && newStreak % 5 == 0) 10 else 0
+                val totalHabitPoints = 10 + bonus
 
-        // 2. Adjust stats healthScore (+5 if checked, -5 if unchecked)
-        val statsEntity = db.taskDao.getUserStats(taskEntity.userId)
-        if (statsEntity != null) {
-            val points = if (newIsDone) 5 else -5
-            val newScore = maxOf(0, minOf(100, statsEntity.healthScore + points))
-            db.taskDao.insertOrUpdateUserStats(statsEntity.copy(healthScore = newScore))
+                db.taskDao.insertOrUpdate(taskEntity.copy(
+                    lastCompletedDate = todayStr,
+                    streak = newStreak,
+                    isDone = true,
+                    syncPending = true,
+                    updatedAt = System.currentTimeMillis()
+                ))
+                totalHabitPoints
+            }
+
+            // Save task log
+            val logId = java.util.UUID.randomUUID().toString()
+            db.taskDao.insertTaskLog(com.example.todoapp.data.local.entity.TaskLogEntity(
+                id = logId,
+                taskId = taskId,
+                userId = userId,
+                completedDate = todayStr,
+                pointsEarned = pointsGained
+            ))
+
+            // Save user stats
+            val currentStats = db.taskDao.getUserStats(userId) ?: com.example.todoapp.data.local.entity.UserStatsEntity(userId = userId, healthScore = 100, totalStreak = 0, lastResetDate = todayStr)
+            val newScore = minOf(100, currentStats.healthScore + pointsGained)
+            db.taskDao.insertOrUpdateUserStats(currentStats.copy(healthScore = newScore))
+        } else {
+            // Uncheck
+            val taskLogs = db.taskDao.getTaskLogsForPeriod(userId, todayStr, todayStr)
+                .filter { it.taskId == taskId }
+            
+            var pointsLost = 0
+            for (log in taskLogs) {
+                pointsLost += log.pointsEarned
+            }
+            db.taskDao.deleteTaskLogsForTask(taskId)
+
+            if (taskEntity.type == "HABIT") {
+                val yesterdayStr = java.time.LocalDate.now().minusDays(1).toString()
+                db.taskDao.insertOrUpdate(taskEntity.copy(
+                    lastCompletedDate = yesterdayStr,
+                    streak = maxOf(0, taskEntity.streak - 1),
+                    isDone = false,
+                    syncPending = true,
+                    updatedAt = System.currentTimeMillis()
+                ))
+            }
+
+            // Save user stats
+            val currentStats = db.taskDao.getUserStats(userId) ?: com.example.todoapp.data.local.entity.UserStatsEntity(userId = userId, healthScore = 100, totalStreak = 0, lastResetDate = todayStr)
+            val newScore = maxOf(0, currentStats.healthScore - pointsLost)
+            db.taskDao.insertOrUpdateUserStats(currentStats.copy(healthScore = newScore))
         }
 
-        // 3. Refresh and update widget datastore cache
-        val tasks = db.taskDao.getTasksForUser(taskEntity.userId).map { it.toDomain() }
+        // Toggle task status
+        db.taskDao.toggleTaskDone(taskId, newIsDone, System.currentTimeMillis())
+
+        // Refresh and update widget datastore cache
+        val tasks = db.taskDao.getTasksForUser(userId).map { it.toDomain() }
         TodoWidgetReceiver.syncAndUpdate(context, tasks)
     }
 
@@ -341,3 +445,5 @@ class ToggleTaskCallback : ActionCallback {
         val TaskIdKey = ActionParameters.Key<String>("taskId")
     }
 }
+
+

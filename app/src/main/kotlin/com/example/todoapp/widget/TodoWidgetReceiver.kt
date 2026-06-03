@@ -85,8 +85,19 @@ class TodoWidgetReceiver : GlanceAppWidgetReceiver() {
             CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                 try {
                     val today = LocalDate.now().toString()   // "YYYY-MM-DD"
+                    val dayOfWeekVal = LocalDate.now().dayOfWeek.value
                     val widgetTasks = tasks
-                        .filter { it.dueDate == today }
+                        .filter { 
+                            if (it.type == com.example.todoapp.domain.model.TaskType.DAILY) {
+                                it.dueDate == today
+                            } else {
+                                if (it.frequencyType == com.example.todoapp.domain.model.FrequencyType.FIXED) {
+                                    it.fixedDays.contains(dayOfWeekVal)
+                                } else {
+                                    it.lastCompletedDate != today || it.isDone
+                                }
+                            }
+                        }
                         .map { WidgetTask(id = it.id, title = it.title, dueTime = it.dueTime, isDone = it.isDone) }
                     WidgetDataStore.saveTasks(appContext, widgetTasks)
 

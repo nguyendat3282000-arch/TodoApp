@@ -107,7 +107,7 @@ fun AddEditTaskScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isEditing) "Chỉnh sửa mục tiêu ✏️" else "Mục tiêu mới ✨",
+                        text = if (isEditing) "Chỉnh sửa nhiệm vụ ✏️" else "Nhiệm vụ mới ✨",
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -134,7 +134,7 @@ fun AddEditTaskScreen(
             Spacer(Modifier.height(4.dp))
 
             // ── Phân loại Task ─────────────────────────────────────────────────
-            FormSectionLabel(emoji = "🏷️", label = "Loại mục tiêu")
+            FormSectionLabel(emoji = "🏷️", label = "Loại nhiệm vụ")
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -142,7 +142,7 @@ fun AddEditTaskScreen(
                 FilterChip(
                     selected = taskType == TaskType.DAILY,
                     onClick = { taskType = TaskType.DAILY },
-                    label = { Text("Hàng ngày (Daily)") },
+                    label = { Text("Nhiệm vụ trong ngày") },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Mint100,
                         selectedLabelColor = Mint500
@@ -151,7 +151,7 @@ fun AddEditTaskScreen(
                 FilterChip(
                     selected = taskType == TaskType.HABIT,
                     onClick = { taskType = TaskType.HABIT },
-                    label = { Text("Thói quen (Habit)") },
+                    label = { Text("Nhiệm vụ dài hạn") },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Mint100,
                         selectedLabelColor = Mint500
@@ -190,7 +190,7 @@ fun AddEditTaskScreen(
 
             // ── Habit Configuration (Chỉ hiện khi chọn Habit) ────────────────
             if (taskType == TaskType.HABIT) {
-                FormSectionLabel(emoji = "🔄", label = "Chu kỳ thói quen")
+                FormSectionLabel(emoji = "🔄", label = "Chu kỳ nhiệm vụ dài hạn")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -301,44 +301,46 @@ fun AddEditTaskScreen(
 
             Spacer(Modifier.height(4.dp))
 
-            // ── Ngày hạn chót ──────────────────────────────────────────────────
-            FormSectionLabel(emoji = "📅", label = "Ngày thực hiện")
-            Text(
-                text = "Hạn chót thực hiện công việc hoặc ngày bắt đầu thói quen",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            DateTimePickerField(
-                value = dueDate,
-                placeholder = "Chọn ngày thực hiện",
-                icon = { Icon(Icons.Rounded.CalendarMonth, null, tint = Mint500) },
-                onClick = { showDatePicker = true },
-            )
+            // ── Ngày hạn chót (Chỉ cho Daily Task) ────────────────────────────
+            if (taskType == TaskType.DAILY) {
+                FormSectionLabel(emoji = "📅", label = "Ngày thực hiện")
+                Text(
+                    text = "Chọn ngày bạn sẽ thực hiện nhiệm vụ này (ví dụ: ngày hôm nay, ngày mai, hoặc một ngày cụ thể)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                DateTimePickerField(
+                    value = dueDate,
+                    placeholder = "Chọn ngày thực hiện",
+                    icon = { Icon(Icons.Rounded.CalendarMonth, null, tint = Mint500) },
+                    onClick = { showDatePicker = true },
+                )
 
-            // Gợi ý ngày nhanh
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val todayStr = LocalDate.now().toString()
-                val tomorrowStr = LocalDate.now().plusDays(1).toString()
-                val weekendStr = LocalDate.now().with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SATURDAY)).toString()
-                val nextWeekStr = LocalDate.now().plusWeeks(1).toString()
+                // Gợi ý ngày nhanh
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val todayStr = LocalDate.now().toString()
+                    val tomorrowStr = LocalDate.now().plusDays(1).toString()
+                    val weekendStr = LocalDate.now().with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SATURDAY)).toString()
+                    val nextWeekStr = LocalDate.now().plusWeeks(1).toString()
 
-                SuggestionChip(onClick = { dueDate = todayStr }, label = { Text("Hôm nay") })
-                SuggestionChip(onClick = { dueDate = tomorrowStr }, label = { Text("Ngày mai") })
-                SuggestionChip(onClick = { dueDate = weekendStr }, label = { Text("Cuối tuần") })
-                SuggestionChip(onClick = { dueDate = nextWeekStr }, label = { Text("Tuần sau") })
+                    SuggestionChip(onClick = { dueDate = todayStr }, label = { Text("Hôm nay") })
+                    SuggestionChip(onClick = { dueDate = tomorrowStr }, label = { Text("Ngày mai") })
+                    SuggestionChip(onClick = { dueDate = weekendStr }, label = { Text("Cuối tuần") })
+                    SuggestionChip(onClick = { dueDate = nextWeekStr }, label = { Text("Tuần sau") })
+                }
+
+                Spacer(Modifier.height(4.dp))
             }
-
-            Spacer(Modifier.height(4.dp))
 
             // ── Giờ hạn chót ───────────────────────────────────────────────────
             FormSectionLabel(emoji = "⏰", label = "Thời gian")
             Text(
-                text = "Thời điểm hệ thống sẽ đổ chuông báo thức nhắc nhở",
+                text = "Chọn thời gian cụ thể trong ngày để thực hiện và nhận thông báo nhắc nhở từ hệ thống",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -356,17 +358,17 @@ fun AddEditTaskScreen(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SuggestionChip(onClick = { dueTime = "07:00" }, label = { Text("07:00 (Sáng)") })
-                SuggestionChip(onClick = { dueTime = "09:00" }, label = { Text("09:00 (Học tập)") })
-                SuggestionChip(onClick = { dueTime = "14:00" }, label = { Text("14:00 (Chiều)") })
-                SuggestionChip(onClick = { dueTime = "20:00" }, label = { Text("20:00 (Tối)") })
+                SuggestionChip(onClick = { dueTime = "07:00" }, label = { Text("07:00") })
+                SuggestionChip(onClick = { dueTime = "09:00" }, label = { Text("09:00") })
+                SuggestionChip(onClick = { dueTime = "14:00" }, label = { Text("14:00") })
+                SuggestionChip(onClick = { dueTime = "20:00" }, label = { Text("20:00") })
             }
 
             Spacer(Modifier.height(4.dp))
 
             // ── Alarm toggle ──────────────────────────────────────────────────
             AnimatedVisibility(
-                visible = dueDate.isNotBlank() && dueTime.isNotBlank(),
+                visible = (taskType == TaskType.HABIT && dueTime.isNotBlank()) || (dueDate.isNotBlank() && dueTime.isNotBlank()),
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
@@ -388,9 +390,9 @@ fun AddEditTaskScreen(
                             editingTask.copy(
                                 title = title.trim(),
                                 description = description.trim(),
-                                dueDate = dueDate,
+                                dueDate = if (taskType == TaskType.HABIT) "" else dueDate,
                                 dueTime = dueTime,
-                                alarmSet = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank(),
+                                alarmSet = setAlarm && ((taskType == TaskType.HABIT && dueTime.isNotBlank()) || (dueDate.isNotBlank() && dueTime.isNotBlank())),
                                 type = taskType,
                                 frequencyType = finalFreqType,
                                 fixedDays = finalFixedDays,
@@ -402,9 +404,9 @@ fun AddEditTaskScreen(
                         viewModel.addTask(
                             title = title.trim(),
                             description = description.trim(),
-                            dueDate = dueDate,
+                            dueDate = if (taskType == TaskType.HABIT) "" else dueDate,
                             dueTime = dueTime,
-                            setAlarm = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank(),
+                            setAlarm = setAlarm && ((taskType == TaskType.HABIT && dueTime.isNotBlank()) || (dueDate.isNotBlank() && dueTime.isNotBlank())),
                             type = taskType,
                             frequencyType = finalFreqType,
                             fixedDays = finalFixedDays,
@@ -431,7 +433,7 @@ fun AddEditTaskScreen(
                     Icon(Icons.Rounded.Check, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
                     Text(
-                        text = if (isEditing) "Lưu thay đổi" else "Thêm mục tiêu",
+                        text = if (isEditing) "Lưu thay đổi" else "Thêm nhiệm vụ",
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }

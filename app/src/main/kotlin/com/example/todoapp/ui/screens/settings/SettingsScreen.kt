@@ -36,7 +36,6 @@ fun SettingsScreen(
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
-    val coroutineScope = rememberCoroutineScope()
 
     val prefs = remember { context.getSharedPreferences("settings_prefs", Context.MODE_PRIVATE) }
     var notificationEnabled by remember {
@@ -206,15 +205,7 @@ fun SettingsScreen(
                         title = "Reset điểm số sức khỏe",
                         description = "Đặt lại điểm về 100 điểm và làm sạch lịch sử",
                         onClick = {
-                            coroutineScope.launch {
-                                val uid = auth.currentUser?.uid ?: return@launch
-                                viewModel.taskRepo.saveUserStats(UserStats(
-                                    userId = uid,
-                                    healthScore = 100,
-                                    totalStreak = 0,
-                                    lastResetDate = LocalDate.now().toString()
-                                ))
-                            }
+                            viewModel.resetUserStats()
                         }
                     )
                 }

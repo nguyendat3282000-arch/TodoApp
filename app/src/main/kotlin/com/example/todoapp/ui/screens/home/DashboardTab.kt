@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.todoapp.domain.model.Task
@@ -69,6 +71,75 @@ fun DashboardTabContent(
         val monday = selectedDate.minusDays((selectedDate.dayOfWeek.value - 1).toLong())
         (0..6).map { monday.plusDays(it.toLong()) }
     }
+
+    val today = LocalDate.now()
+    val startOfWeek = remember(today) { today.minusDays((today.dayOfWeek.value - 1).toLong()) }
+    val endOfWeek = remember(startOfWeek) { startOfWeek.plusDays(6) }
+
+    val startOfMonth = remember(today) { today.withDayOfMonth(1) }
+    val endOfMonth = remember(today) { today.plusMonths(1).withDayOfMonth(1).minusDays(1) }
+
+    // Compute weekly completed/pending lists
+    val weeklyTasks = remember(tasks, taskLogs, startOfWeek, endOfWeek) {
+        val dailyCompleted = tasks.filter { 
+            it.type == TaskType.DAILY && 
+            it.isDone && 
+            runCatching { LocalDate.parse(it.dueDate) }.getOrNull()?.let { d -> d in startOfWeek..endOfWeek } == true 
+        }
+        val dailyPending = tasks.filter { 
+            it.type == TaskType.DAILY && 
+            !it.isDone && 
+            runCatching { LocalDate.parse(it.dueDate) }.getOrNull()?.let { d -> d in startOfWeek..endOfWeek } == true 
+        }
+
+        val habitCompleted = tasks.filter { task ->
+            task.type == TaskType.HABIT &&
+            taskLogs.any { log -> 
+                log.taskId == task.id && 
+                runCatching { LocalDate.parse(log.completedDate) }.getOrNull()?.let { d -> d in startOfWeek..endOfWeek } == true 
+            }
+        }
+        val habitPending = tasks.filter { task ->
+            task.type == TaskType.HABIT &&
+            taskLogs.none { log -> 
+                log.taskId == task.id && 
+                runCatching { LocalDate.parse(log.completedDate) }.getOrNull()?.let { d -> d in startOfWeek..endOfWeek } == true 
+            }
+        }
+
+        Pair(dailyCompleted + habitCompleted, dailyPending + habitPending)
+    }
+
+    val weeklyCompleted = weeklyTasks.first
+    val weeklyPending = weeklyTasks.second
+
+    // Compute monthly completed/pending lists
+    val monthlyTasks = remember(tasks, startOfMonth, endOfMonth) {
+        val dailyCompleted = tasks.filter { 
+            it.type == TaskType.DAILY && 
+            it.isDone && 
+            runCatching { LocalDate.parse(it.dueDate) }.getOrNull()?.let { d -> d in startOfMonth..endOfMonth } == true 
+        }
+        val dailyPending = tasks.filter { 
+            it.type == TaskType.DAILY && 
+            !it.isDone && 
+            runCatching { LocalDate.parse(it.dueDate) }.getOrNull()?.let { d -> d in startOfMonth..endOfMonth } == true 
+        }
+
+        val habitCompleted = tasks.filter { 
+            it.type == TaskType.HABIT && 
+            runCatching { LocalDate.parse(it.lastCompletedDate) }.getOrNull()?.let { d -> d in startOfMonth..endOfMonth } == true 
+        }
+        val habitPending = tasks.filter { 
+            it.type == TaskType.HABIT && 
+            runCatching { LocalDate.parse(it.lastCompletedDate) }.getOrNull()?.let { d -> d in startOfMonth..endOfMonth } != true 
+        }
+
+        Pair(dailyCompleted + habitCompleted, dailyPending + habitPending)
+    }
+
+    val monthlyCompleted = monthlyTasks.first
+    val monthlyPending = monthlyTasks.second
 
     Column(
         modifier = modifier
@@ -205,7 +276,7 @@ fun DashboardTabContent(
                 val pendingList = dayTasks.second
 
                 Text(
-                    text = "Mục tiêu ngày ${selectedDate.format(DateTimeFormatter.ofPattern("d/M", Locale.getDefault()))}",
+                    text = "Nhiệm vụ ngày ${selectedDate.format(DateTimeFormatter.ofPattern("d/M", Locale.getDefault()))}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -219,7 +290,7 @@ fun DashboardTabContent(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                     ) {
                         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("Không có mục tiêu nào trong ngày này ☕", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                            Text("Không có nhiệm vụ nào trong ngày này ☕", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                         }
                     }
                 } else {
@@ -275,7 +346,7 @@ fun DashboardTabContent(
                                     style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Text(text = "Streak: $streak🔥", style = MaterialTheme.typography.labelMedium, color = Color(0xFFFF6B4E))
+                                Text(text = "Chuỗi: $streak🔥", style = MaterialTheme.typography.labelMedium, color = Color(0xFFFF6B4E))
                             }
                         }
                     }
@@ -369,11 +440,48 @@ fun DashboardTabContent(
                         }
                     }
                 }
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Nhiệm vụ tuần này",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+
+                if (weeklyCompleted.isEmpty() && weeklyPending.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                    ) {
+                        Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                            Text("Không có nhiệm vụ nào trong tuần này ☕", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        }
+                    }
+                } else {
+                    if (weeklyPending.isNotEmpty()) {
+                        Text("Chưa hoàn thành (${weeklyPending.size})", style = MaterialTheme.typography.titleSmall, color = Color.Red.copy(alpha = 0.8f), modifier = Modifier.align(Alignment.Start))
+                        weeklyPending.forEach { task ->
+                            TaskSimpleRow(task = task, isDone = false)
+                        }
+                    }
+
+                    if (weeklyCompleted.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text("Đã hoàn thành (${weeklyCompleted.size})", style = MaterialTheme.typography.titleSmall, color = SuccessGreen, modifier = Modifier.align(Alignment.Start))
+                        weeklyCompleted.forEach { task ->
+                            TaskSimpleRow(task = task, isDone = true)
+                        }
+                    }
+                }
             }
 
             PeriodFilter.MONTH -> {
                 // --- Monthly Stats Card ---
-                val monthlyCompleted = remember(taskLogs) {
+                val monthlyCompletedCount = remember(taskLogs) {
                     val startOfMonth = LocalDate.now().withDayOfMonth(1).toString()
                     val endOfMonth = LocalDate.now().plusMonths(1).withDayOfMonth(1).minusDays(1).toString()
                     taskLogs.count { it.completedDate in startOfMonth..endOfMonth }
@@ -398,13 +506,13 @@ fun DashboardTabContent(
                         )
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            text = "$monthlyCompleted",
+                            text = "$monthlyCompletedCount",
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 48.sp),
                             color = Mint500,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Mục tiêu đã hoàn thành trong tháng",
+                            text = "Nhiệm vụ đã hoàn thành trong tháng",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -428,6 +536,43 @@ fun DashboardTabContent(
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.Gray
                         )
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Nhiệm vụ tháng này",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+
+                if (monthlyCompleted.isEmpty() && monthlyPending.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                    ) {
+                        Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                            Text("Không có nhiệm vụ nào trong tháng này ☕", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        }
+                    }
+                } else {
+                    if (monthlyPending.isNotEmpty()) {
+                        Text("Chưa hoàn thành (${monthlyPending.size})", style = MaterialTheme.typography.titleSmall, color = Color.Red.copy(alpha = 0.8f), modifier = Modifier.align(Alignment.Start))
+                        monthlyPending.forEach { task ->
+                            TaskSimpleRow(task = task, isDone = false)
+                        }
+                    }
+
+                    if (monthlyCompleted.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text("Đã hoàn thành (${monthlyCompleted.size})", style = MaterialTheme.typography.titleSmall, color = SuccessGreen, modifier = Modifier.align(Alignment.Start))
+                        monthlyCompleted.forEach { task ->
+                            TaskSimpleRow(task = task, isDone = true)
+                        }
                     }
                 }
             }

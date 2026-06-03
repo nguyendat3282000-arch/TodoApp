@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +68,7 @@ fun HomeScreen(
 ) {
     var activeTab by remember { mutableStateOf(HomeTab.TASKS) }
     var taskSubTab by remember { mutableStateOf(TaskSubTab.DAILY) }
+    var selectedTaskForDetails by remember { mutableStateOf<Task?>(null) }
 
     val tasks by viewModel.tasks.collectAsState()
     val userStats by viewModel.userStats.collectAsState()
@@ -76,30 +78,6 @@ fun HomeScreen(
     val greeting = greeting()
 
     Scaffold(
-        topBar = {
-            // Standard small transparent TopAppBar - removes large white space at top
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "TodoApp ✨",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                },
-                actions = {
-                    // Settings button at top right
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Rounded.Settings,
-                            contentDescription = "Cài đặt",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        },
         floatingActionButton = {
             if (activeTab == HomeTab.TASKS) {
                 FloatingActionButton(
@@ -120,10 +98,39 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(
+                    bottom = innerPadding.calculateBottomPadding(),
+                    start = innerPadding.calculateStartPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
+                    end = innerPadding.calculateEndPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)
+                )
         ) {
             // Main Content Area
             Column(modifier = Modifier.fillMaxSize()) {
+                // Slim, premium custom header (removes large blank space at top)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(start = 20.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "TodoApp ✨",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 22.sp
+                    )
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Rounded.Settings,
+                            contentDescription = "Cài đặt",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
                 when (activeTab) {
                     HomeTab.TASKS -> {
                         // Segmented Control Tabs for Daily vs Habits
@@ -214,7 +221,7 @@ fun HomeScreen(
 
                                     if (dailyTasks.isEmpty()) {
                                         item {
-                                            EmptyState("Chưa có task nào cho hôm nay. Bấm + để thêm mục tiêu! 🎉")
+                                            EmptyState("Chưa có nhiệm vụ nào cho hôm nay. Bấm + để thêm nhiệm vụ mới! 🎉")
                                         }
                                     } else {
                                         if (pending.isNotEmpty()) {
@@ -224,7 +231,8 @@ fun HomeScreen(
                                                     task = task,
                                                     onToggle = { viewModel.toggleDone(task) },
                                                     onEdit = { onEditTask(task.id) },
-                                                    onDelete = { viewModel.deleteTask(task.id) }
+                                                    onDelete = { viewModel.deleteTask(task.id) },
+                                                    onClick = { selectedTaskForDetails = task }
                                                 )
                                             }
                                         }
@@ -236,7 +244,8 @@ fun HomeScreen(
                                                     task = task,
                                                     onToggle = { viewModel.toggleDone(task) },
                                                     onEdit = { onEditTask(task.id) },
-                                                    onDelete = { viewModel.deleteTask(task.id) }
+                                                    onDelete = { viewModel.deleteTask(task.id) },
+                                                    onClick = { selectedTaskForDetails = task }
                                                 )
                                             }
                                         }
@@ -252,7 +261,7 @@ fun HomeScreen(
                                 ) {
                                     if (habits.isEmpty()) {
                                         item {
-                                            EmptyState("Chưa có thói quen nào. Thiết lập thói quen để thắp lửa streak ngay! 🔥")
+                                            EmptyState("Chưa có nhiệm vụ dài hạn nào. Thiết lập nhiệm vụ dài hạn để thắp lửa streak ngay! 🔥")
                                         }
                                     } else {
                                         itemsIndexed(habits, key = { _, task -> task.id }) { index, habit ->
@@ -261,7 +270,8 @@ fun HomeScreen(
                                                 weeklyLogs = weeklyLogs,
                                                 onToggle = { viewModel.toggleDone(habit) },
                                                 onEdit = { onEditTask(habit.id) },
-                                                onDelete = { viewModel.deleteTask(habit.id) }
+                                                onDelete = { viewModel.deleteTask(habit.id) },
+                                                onClick = { selectedTaskForDetails = habit }
                                             )
                                         }
                                     }
@@ -284,69 +294,52 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 16.dp)
-                    .shadow(12.dp, RoundedCornerShape(30.dp))
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(30.dp))
-                    .border(BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)), RoundedCornerShape(30.dp))
-                    .width(260.dp)
-                    .height(52.dp)
-                    .clip(RoundedCornerShape(30.dp))
+                    .shadow(8.dp, RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), RoundedCornerShape(24.dp))
+                    .border(BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.15f)), RoundedCornerShape(24.dp))
+                    .width(220.dp)
+                    .height(46.dp)
+                    .clip(RoundedCornerShape(24.dp))
             ) {
                 Row(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    val activeColor = Mint500
-                    val inactiveColor = Color.Gray
-
-                    // Item 1: Goals
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable { activeTab = HomeTab.TASKS },
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.CheckCircle,
-                            contentDescription = "Goals",
-                            tint = if (activeTab == HomeTab.TASKS) activeColor else inactiveColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = "Mục tiêu",
-                            fontSize = 10.sp,
-                            fontWeight = if (activeTab == HomeTab.TASKS) FontWeight.Bold else FontWeight.Normal,
-                            color = if (activeTab == HomeTab.TASKS) activeColor else inactiveColor
-                        )
-                    }
-
-                    // Item 2: Dashboard
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable { activeTab = HomeTab.DASHBOARD },
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.BarChart,
-                            contentDescription = "Dashboard",
-                            tint = if (activeTab == HomeTab.DASHBOARD) activeColor else inactiveColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = "Thống kê",
-                            fontSize = 10.sp,
-                            fontWeight = if (activeTab == HomeTab.DASHBOARD) FontWeight.Bold else FontWeight.Normal,
-                            color = if (activeTab == HomeTab.DASHBOARD) activeColor else inactiveColor
-                        )
-                    }
+                    NavigationTabItem(
+                        selected = activeTab == HomeTab.TASKS,
+                        onClick = { activeTab = HomeTab.TASKS },
+                        icon = Icons.Rounded.CheckCircle,
+                        label = "Nhiệm vụ",
+                        modifier = Modifier.weight(1f)
+                    )
+                    NavigationTabItem(
+                        selected = activeTab == HomeTab.DASHBOARD,
+                        onClick = { activeTab = HomeTab.DASHBOARD },
+                        icon = Icons.Rounded.BarChart,
+                        label = "Thống kê",
+                        modifier = Modifier.weight(1f)
+                    )
                 }
+            }
+        }
+
+        if (selectedTaskForDetails != null) {
+            ModalBottomSheet(
+                onDismissRequest = { selectedTaskForDetails = null },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                TaskDetailsContent(
+                    task = selectedTaskForDetails!!,
+                    onEdit = { 
+                        selectedTaskForDetails = null
+                        onEditTask(it)
+                    },
+                    onDelete = { 
+                        viewModel.deleteTask(it)
+                        selectedTaskForDetails = null
+                    }
+                )
             }
         }
     }
@@ -363,6 +356,7 @@ private fun SwipeableTaskCard(
     onToggle: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onClick: () -> Unit = {},
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
@@ -397,6 +391,7 @@ private fun SwipeableTaskCard(
                 task = task,
                 onToggle = onToggle,
                 onEdit = onEdit,
+                onClick = onClick,
             )
         }
     )
@@ -407,6 +402,7 @@ fun TaskCard(
     task: Task,
     onToggle: () -> Unit,
     onEdit: () -> Unit,
+    onClick: () -> Unit = {},
 ) {
     val cardColor by animateColorAsState(
         targetValue = if (task.isDone) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
@@ -436,7 +432,7 @@ fun TaskCard(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = CardShape,
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(
@@ -526,7 +522,8 @@ fun HabitCard(
     weeklyLogs: List<com.example.todoapp.domain.model.TaskLog>,
     onToggle: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onClick: () -> Unit = {}
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
@@ -559,7 +556,7 @@ fun HabitCard(
         },
         content = {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().clickable { onClick() },
                 shape = CardShape,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -780,3 +777,131 @@ private fun formatDate(dateStr: String): String = runCatching {
         else -> date.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))
     }
 }.getOrDefault(dateStr)
+
+@Composable
+private fun NavigationTabItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (selected) Mint500.copy(alpha = 0.12f) else Color.Transparent,
+        animationSpec = tween(300),
+        label = "nav_item_bg"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (selected) Mint500 else Color.Gray,
+        animationSpec = tween(300),
+        label = "nav_item_content"
+    )
+
+    Box(
+        modifier = modifier
+            .height(36.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = contentColor,
+                modifier = Modifier.size(18.dp)
+            )
+            AnimatedVisibility(visible = selected) {
+                Row {
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = label,
+                        color = contentColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskDetailsContent(
+    task: Task,
+    onEdit: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(text = task.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        if (task.description.isNotBlank()) {
+            Text(text = task.description, style = MaterialTheme.typography.bodyLarge)
+        }
+        HorizontalDivider()
+        
+        // Due Date / Time
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (task.dueDate.isNotBlank()) {
+                ChipInfo(emoji = "📅", text = formatDate(task.dueDate))
+            }
+            if (task.dueTime.isNotBlank()) {
+                ChipInfo(emoji = "⏰", text = task.dueTime)
+            }
+        }
+        
+        if (task.type == TaskType.HABIT) {
+            Text(text = "🔥 Chuỗi hiện tại: ${task.streak} ngày", style = MaterialTheme.typography.titleMedium, color = Color(0xFFFF6B4E))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedButton(
+                onClick = { onDelete(task.id) },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRose)
+            ) {
+                Icon(Icons.Rounded.Delete, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Xóa")
+            }
+            Button(
+                onClick = { onEdit(task.id) },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Mint500)
+            ) {
+                Icon(Icons.Rounded.Edit, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Chỉnh sửa")
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+private fun ChipInfo(emoji: String, text: String) {
+    Row(
+        modifier = Modifier
+            .background(Mint100, PillShape)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(emoji)
+        Text(text, style = MaterialTheme.typography.labelMedium, color = Mint500)
+    }
+}

@@ -146,11 +146,11 @@ class TaskViewModel(
 
         viewModelScope.launch {
             _taskUiState.value = TaskUiState.Loading
-            val shouldSetAlarm = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank()
+            val shouldSetAlarm = setAlarm && ((type == TaskType.HABIT && dueTime.isNotBlank()) || (dueDate.isNotBlank() && dueTime.isNotBlank()))
             val task = Task(
                 title       = title.trim(),
                 description = description.trim(),
-                dueDate     = dueDate,
+                dueDate     = if (type == TaskType.HABIT) "" else dueDate,
                 dueTime     = dueTime,
                 userId      = uid,
                 alarmSet    = shouldSetAlarm,
@@ -163,10 +163,16 @@ class TaskViewModel(
             taskRepo.addTask(task)
                 .onSuccess { newId ->
                     if (shouldSetAlarm) {
+                        val finalDueDate = if (type == TaskType.HABIT) {
+                            val today = LocalDate.now()
+                            val time = java.time.LocalTime.parse(dueTime)
+                            if (time.isBefore(java.time.LocalTime.now())) today.plusDays(1).toString() else today.toString()
+                        } else dueDate
+
                         alarmScheduler.scheduleExactAlarm(
                             taskId    = newId,
                             taskTitle = title,
-                            dueDate   = dueDate,
+                            dueDate   = finalDueDate,
                             dueTime   = dueTime,
                         )
                     }
@@ -189,11 +195,19 @@ class TaskViewModel(
             _taskUiState.value = TaskUiState.Loading
             // Always cancel the previous alarm — safe even if none was scheduled.
             alarmScheduler.cancelAlarm(task.id)
-            if (task.alarmSet && task.dueDate.isNotBlank() && task.dueTime.isNotBlank()) {
+
+            val shouldSetAlarm = task.alarmSet && ((task.type == TaskType.HABIT && task.dueTime.isNotBlank()) || (task.dueDate.isNotBlank() && task.dueTime.isNotBlank()))
+            if (shouldSetAlarm) {
+                val finalDueDate = if (task.type == TaskType.HABIT) {
+                    val today = LocalDate.now()
+                    val time = java.time.LocalTime.parse(task.dueTime)
+                    if (time.isBefore(java.time.LocalTime.now())) today.plusDays(1).toString() else today.toString()
+                } else task.dueDate
+
                 alarmScheduler.scheduleExactAlarm(
                     taskId    = task.id,
                     taskTitle = task.title,
-                    dueDate   = task.dueDate,
+                    dueDate   = finalDueDate,
                     dueTime   = task.dueTime,
                 )
             }

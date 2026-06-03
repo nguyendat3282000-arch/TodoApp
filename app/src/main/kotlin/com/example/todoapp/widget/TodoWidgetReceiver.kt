@@ -89,6 +89,15 @@ class TodoWidgetReceiver : GlanceAppWidgetReceiver() {
                         .filter { it.dueDate == today }
                         .map { WidgetTask(id = it.id, title = it.title, dueTime = it.dueTime, isDone = it.isDone) }
                     WidgetDataStore.saveTasks(appContext, widgetTasks)
+
+                    // Fetch user stats and save to widget datastore
+                    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+                    val userId = auth.currentUser?.uid
+                    val stats = if (userId != null) {
+                        com.example.todoapp.data.local.TodoDatabase.getDatabase(appContext).taskDao.getUserStats(userId)
+                    } else null
+                    WidgetDataStore.saveStats(appContext, stats?.healthScore ?: 100, stats?.totalStreak ?: 0)
+
                     requestWidgetUpdate(appContext)
                 } catch (e: Exception) {
                     Log.e(TAG, "syncAndUpdate failed: $e")

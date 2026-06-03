@@ -2,7 +2,14 @@
 package com.example.todoapp.data.mapper
 
 import com.example.todoapp.data.local.entity.TaskEntity
+import com.example.todoapp.data.local.entity.TaskLogEntity
+import com.example.todoapp.data.local.entity.UserStatsEntity
 import com.example.todoapp.domain.model.Task
+import com.example.todoapp.domain.model.TaskType
+import com.example.todoapp.domain.model.FrequencyType
+import com.example.todoapp.domain.model.FlexibleInterval
+import com.example.todoapp.domain.model.UserStats
+import com.example.todoapp.domain.model.TaskLog
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  TaskMapper — Single source of truth for all Task mapping logic
@@ -32,6 +39,13 @@ fun TaskEntity.toDomain(): Task = Task(
     updatedAt     = updatedAt,
     syncPending   = syncPending,
     deletePending = deletePending,
+    type          = runCatching { TaskType.valueOf(type) }.getOrDefault(TaskType.DAILY),
+    frequencyType = frequencyType?.let { runCatching { FrequencyType.valueOf(it) }.getOrNull() },
+    fixedDays     = fixedDays.split(",").filter { it.isNotBlank() }.mapNotNull { it.toIntOrNull() },
+    flexibleCount = flexibleCount,
+    flexibleInterval = flexibleInterval?.let { runCatching { FlexibleInterval.valueOf(it) }.getOrNull() },
+    streak        = streak,
+    lastCompletedDate = lastCompletedDate
 )
 
 // ── Task → TaskEntity ─────────────────────────────────────────────────────────
@@ -58,6 +72,13 @@ fun Task.toEntity(
     updatedAt     = if (updatedAt != 0L) updatedAt else System.currentTimeMillis(),
     syncPending   = syncPending,
     deletePending = deletePending,
+    type          = type.name,
+    frequencyType = frequencyType?.name,
+    fixedDays     = fixedDays.joinToString(","),
+    flexibleCount = flexibleCount,
+    flexibleInterval = flexibleInterval?.name,
+    streak        = streak,
+    lastCompletedDate = lastCompletedDate
 )
 
 // ── Firestore document Map → Task ─────────────────────────────────────────────
@@ -82,6 +103,10 @@ fun Map<String, Any?>.toTask(documentId: String): Task {
         }
     }
 
+    val typeStr = this["type"] as? String ?: "DAILY"
+    val freqStr = this["frequencyType"] as? String
+    val flexIntervalStr = this["flexibleInterval"] as? String
+
     return Task(
         id          = documentId,
         title       = this["title"] as? String ?: "",
@@ -95,6 +120,13 @@ fun Map<String, Any?>.toTask(documentId: String): Task {
         updatedAt   = timestampToMillis(this["updatedAt"]),
         syncPending = false,
         deletePending = false,
+        type          = runCatching { TaskType.valueOf(typeStr) }.getOrDefault(TaskType.DAILY),
+        frequencyType = freqStr?.let { runCatching { FrequencyType.valueOf(it) }.getOrNull() },
+        fixedDays     = (this["fixedDays"] as? List<*>)?.mapNotNull { (it as? Number)?.toInt() } ?: emptyList(),
+        flexibleCount = (this["flexibleCount"] as? Number)?.toInt() ?: 0,
+        flexibleInterval = flexIntervalStr?.let { runCatching { FlexibleInterval.valueOf(it) }.getOrNull() },
+        streak        = (this["streak"] as? Number)?.toInt() ?: 0,
+        lastCompletedDate = this["lastCompletedDate"] as? String
     )
 }
 
@@ -117,4 +149,41 @@ fun Task.toFirestoreMap(): Map<String, Any?> = mapOf(
     "isDone"      to isDone,
     "userId"      to userId,
     "alarmSet"    to alarmSet,
+    "type"        to type.name,
+    "frequencyType" to frequencyType?.name,
+    "fixedDays"   to fixedDays,
+    "flexibleCount" to flexibleCount,
+    "flexibleInterval" to flexibleInterval?.name,
+    "streak"      to streak,
+    "lastCompletedDate" to lastCompletedDate,
+)
+
+fun UserStatsEntity.toDomain(): UserStats = UserStats(
+    userId = userId,
+    healthScore = healthScore,
+    totalStreak = totalStreak,
+    lastResetDate = lastResetDate
+)
+
+fun UserStats.toEntity(): UserStatsEntity = UserStatsEntity(
+    userId = userId,
+    healthScore = healthScore,
+    totalStreak = totalStreak,
+    lastResetDate = lastResetDate
+)
+
+fun TaskLogEntity.toDomain(): TaskLog = TaskLog(
+    id = id,
+    taskId = taskId,
+    userId = userId,
+    completedDate = completedDate,
+    pointsEarned = pointsEarned
+)
+
+fun TaskLog.toEntity(): TaskLogEntity = TaskLogEntity(
+    id = id,
+    taskId = taskId,
+    userId = userId,
+    completedDate = completedDate,
+    pointsEarned = pointsEarned
 )

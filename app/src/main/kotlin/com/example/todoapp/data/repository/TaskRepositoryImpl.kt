@@ -7,6 +7,8 @@ import com.example.todoapp.data.mapper.toDomain
 import com.example.todoapp.data.mapper.toEntity
 import com.example.todoapp.data.remote.FirestoreTaskSource
 import com.example.todoapp.domain.model.Task
+import com.example.todoapp.domain.model.UserStats
+import com.example.todoapp.domain.model.TaskLog
 import com.example.todoapp.domain.repository.TaskRepository
 import com.example.todoapp.sync.TaskSyncWorker
 import kotlinx.coroutines.flow.Flow
@@ -97,5 +99,36 @@ class TaskRepositoryImpl(
      */
     private fun triggerSync() {
         TaskSyncWorker.triggerOneTimeSync(context)
+    }
+
+    // ── Giai Đoạn 2: Gamification & Logs Implementation ──────────────────────
+
+    override fun observeUserStats(userId: String): Flow<UserStats?> {
+        return dao.observeUserStats(userId).map { it?.toDomain() }
+    }
+
+    override suspend fun getUserStats(userId: String): UserStats? {
+        return dao.getUserStats(userId)?.toDomain()
+    }
+
+    override suspend fun saveUserStats(stats: UserStats): Result<Unit> = runCatching {
+        dao.insertOrUpdateUserStats(stats.toEntity())
+    }
+
+    override fun observeTaskLogsForPeriod(userId: String, startDate: String, endDate: String): Flow<List<TaskLog>> {
+        return dao.observeTaskLogsForPeriod(userId, startDate, endDate).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getTaskLogsForPeriod(userId: String, startDate: String, endDate: String): List<TaskLog> =
+        dao.getTaskLogsForPeriod(userId, startDate, endDate).map { it.toDomain() }
+
+    override suspend fun addTaskLog(log: TaskLog): Result<Unit> = runCatching {
+        dao.insertTaskLog(log.toEntity())
+    }
+
+    override suspend fun deleteTaskLogsForTask(taskId: String): Result<Unit> = runCatching {
+        dao.deleteTaskLogsForTask(taskId)
     }
 }

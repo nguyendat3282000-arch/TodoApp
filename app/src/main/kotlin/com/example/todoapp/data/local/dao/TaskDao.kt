@@ -6,6 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.todoapp.data.local.entity.TaskEntity
+import com.example.todoapp.data.local.entity.TaskLogEntity
+import com.example.todoapp.data.local.entity.UserStatsEntity
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -77,4 +79,41 @@ interface TaskDao {
 
     @Query("DELETE FROM tasks WHERE id = :taskId")
     suspend fun hardDelete(taskId: String)
+
+    // ── Giai Đoạn 2: User Stats Queries ───────────────────────────────────────
+
+    @Query("SELECT * FROM user_stats WHERE userId = :userId")
+    fun observeUserStats(userId: String): Flow<UserStatsEntity?>
+
+    @Query("SELECT * FROM user_stats WHERE userId = :userId")
+    suspend fun getUserStats(userId: String): UserStatsEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateUserStats(stats: UserStatsEntity)
+
+    // ── Giai Đoạn 2: Task Logs Queries ────────────────────────────────────────
+
+    @Query("""
+        SELECT * FROM task_logs 
+        WHERE userId = :userId AND completedDate BETWEEN :startDate AND :endDate
+        ORDER BY completedDate ASC
+    """)
+    fun observeTaskLogsForPeriod(userId: String, startDate: String, endDate: String): Flow<List<TaskLogEntity>>
+
+    @Query("""
+        SELECT * FROM task_logs 
+        WHERE userId = :userId AND completedDate BETWEEN :startDate AND :endDate
+        ORDER BY completedDate ASC
+    """)
+    suspend fun getTaskLogsForPeriod(userId: String, startDate: String, endDate: String): List<TaskLogEntity>
+
+    @Query("SELECT * FROM task_logs WHERE taskId = :taskId")
+    suspend fun getTaskLogsForTask(taskId: String): List<TaskLogEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTaskLog(log: TaskLogEntity)
+
+    @Query("DELETE FROM task_logs WHERE taskId = :taskId")
+    suspend fun deleteTaskLogsForTask(taskId: String)
 }
+

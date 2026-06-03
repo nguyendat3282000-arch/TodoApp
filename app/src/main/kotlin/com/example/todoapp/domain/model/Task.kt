@@ -22,6 +22,21 @@ package com.example.todoapp.domain.model
  * @property syncPending True when local changes have not yet been pushed to the remote.
  * @property deletePending True when this record is soft-deleted and awaiting remote deletion.
  */
+enum class TaskType {
+    DAILY,
+    HABIT
+}
+
+enum class FrequencyType {
+    FIXED,
+    FLEXIBLE
+}
+
+enum class FlexibleInterval {
+    WEEK,
+    MONTH
+}
+
 data class Task(
     val id: String = "",
     val title: String = "",
@@ -35,4 +50,14 @@ data class Task(
     val updatedAt: Long = 0L,
     val syncPending: Boolean = false,
     val deletePending: Boolean = false,
+    
+    // --- Giai Đoạn 2 Fields ---
+    val type: TaskType = TaskType.DAILY,
+    val frequencyType: FrequencyType? = null,
+    val fixedDays: List<Int> = emptyList(), // 1 = Monday, ..., 7 = Sunday
+    val flexibleCount: Int = 0,
+    val flexibleInterval: FlexibleInterval? = null,
+    val streak: Int = 0,
+    val lastCompletedDate: String? = null    // "YYYY-MM-DD"
 )
+

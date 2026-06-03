@@ -38,6 +38,8 @@ private val Context.widgetDataStore: DataStore<Preferences> by preferencesDataSt
 object WidgetDataStore {
 
     private val TASKS_JSON_KEY = stringPreferencesKey("today_tasks_json")
+    private val HEALTH_SCORE_KEY = androidx.datastore.preferences.core.intPreferencesKey("health_score")
+    private val STREAK_KEY = androidx.datastore.preferences.core.intPreferencesKey("streak")
     private val json = Json { ignoreUnknownKeys = true }
 
     // ── Write ─────────────────────────────────────────────────────────────────
@@ -50,6 +52,13 @@ object WidgetDataStore {
     suspend fun saveTasks(context: Context, tasks: List<WidgetTask>) {
         context.widgetDataStore.edit { prefs ->
             prefs[TASKS_JSON_KEY] = json.encodeToString(tasks)
+        }
+    }
+
+    suspend fun saveStats(context: Context, score: Int, streak: Int) {
+        context.widgetDataStore.edit { prefs ->
+            prefs[HEALTH_SCORE_KEY] = score
+            prefs[STREAK_KEY] = streak
         }
     }
 
@@ -79,5 +88,16 @@ object WidgetDataStore {
             return@collect   // take only the first emission
         }
         return result
+    }
+
+    suspend fun loadStatsOnce(context: Context): Pair<Int, Int> {
+        var score = 100
+        var streak = 0
+        context.widgetDataStore.data.collect { prefs ->
+            score = prefs[HEALTH_SCORE_KEY] ?: 100
+            streak = prefs[STREAK_KEY] ?: 0
+            return@collect
+        }
+        return Pair(score, streak)
     }
 }

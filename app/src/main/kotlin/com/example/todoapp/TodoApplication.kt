@@ -2,10 +2,13 @@
 package com.example.todoapp
 
 import android.app.Application
+import android.content.Context
 import com.example.todoapp.alarm.AlarmNotificationHelper
 import com.example.todoapp.di.ServiceLocator
 import com.example.todoapp.notification.DailySummaryNotificationHelper
+import com.example.todoapp.notification.MorningNotificationReceiver
 import com.example.todoapp.sync.TaskSyncWorker
+import com.example.todoapp.sync.DailyResetWorker
 
 /**
  * Custom Application class.
@@ -30,8 +33,19 @@ class TodoApplication : Application() {
         // 2. Notification channels (API 26+ requirement)
         AlarmNotificationHelper.createNotificationChannel(this)
         DailySummaryNotificationHelper.createChannel(this)
+        MorningNotificationReceiver.createChannel(this)
 
         // 3. Periodic sync (ExistingPeriodicWorkPolicy.KEEP — won't reset if already running)
         TaskSyncWorker.schedulePeriodicSync(this)
+
+        // 4. Daily Reset Worker (Midnight reset)
+        DailyResetWorker.scheduleDailyReset(this)
+
+        // 5. Morning motivation notification
+        val prefs = getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+        if (!prefs.contains("morning_hour")) {
+            prefs.edit().putInt("morning_hour", 7).putInt("morning_minute", 0).apply()
+            MorningNotificationReceiver.scheduleNotification(this, 7, 0)
+        }
     }
 }

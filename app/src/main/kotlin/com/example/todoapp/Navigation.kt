@@ -34,6 +34,9 @@ data object HomeDest : NavKey
 @Serializable
 data class AddEditTaskDest(val taskId: String? = null) : NavKey
 
+@Serializable
+data object SettingsDest : NavKey
+
 // ══════════════════════════════════════════════════════════════════════════════
 //  NavGraph
 // ══════════════════════════════════════════════════════════════════════════════
@@ -88,11 +91,7 @@ fun TodoNavGraph(
                     viewModel  = taskViewModel,
                     onAddTask  = { backStack.add(AddEditTaskDest()) },
                     onEditTask = { taskId -> backStack.add(AddEditTaskDest(taskId)) },
-                    onSignOut  = {
-                        authViewModel.signOut()
-                        backStack.clear()
-                        backStack.add(AuthDest)
-                    },
+                    onNavigateToSettings = { backStack.add(SettingsDest) },
                 )
             }
 
@@ -101,6 +100,18 @@ fun TodoNavGraph(
                     viewModel      = taskViewModel,
                     taskId         = dest.taskId,
                     onNavigateBack = { if (backStack.size > 1) backStack.removeLast() },
+                )
+            }
+
+            entry<SettingsDest> {
+                com.example.todoapp.ui.screens.settings.SettingsScreen(
+                    viewModel      = taskViewModel,
+                    onNavigateBack = { if (backStack.size > 1) backStack.removeLast() },
+                    onSignOut      = {
+                        authViewModel.signOut()
+                        backStack.clear()
+                        backStack.add(AuthDest)
+                    }
                 )
             }
         },

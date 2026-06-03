@@ -6,6 +6,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.todoapp.alarm.AlarmScheduler
 import com.example.todoapp.domain.model.Task
+import com.example.todoapp.domain.model.UserStats
+import com.example.todoapp.domain.model.TaskLog
+import com.example.todoapp.domain.model.TaskType
+import com.example.todoapp.domain.model.FrequencyType
+import com.example.todoapp.domain.model.FlexibleInterval
 import com.example.todoapp.domain.repository.AuthRepository
 import com.example.todoapp.domain.repository.TaskRepository
 import com.example.todoapp.notification.DailySummaryNotificationHelper
@@ -48,6 +53,12 @@ class TaskViewModel(
     private val _taskUiState = MutableStateFlow<TaskUiState>(TaskUiState.Idle)
     val taskUiState: StateFlow<TaskUiState> = _taskUiState.asStateFlow()
 
+    private val _userStats = MutableStateFlow<UserStats?>(null)
+    val userStats: StateFlow<UserStats?> = _userStats.asStateFlow()
+
+    private val _weeklyTaskLogs = MutableStateFlow<List<TaskLog>>(emptyList())
+    val weeklyTaskLogs: StateFlow<List<TaskLog>> = _weeklyTaskLogs.asStateFlow()
+
     // ── Load task list ────────────────────────────────────────────────────────
 
     /**
@@ -62,6 +73,32 @@ class TaskViewModel(
                 _tasks.value = list
                 syncWidget(list)
                 syncDailySummary(list)
+            }
+        }
+        loadUserStatsAndLogs(userId)
+    }
+
+    private fun loadUserStatsAndLogs(userId: String) {
+        viewModelScope.launch {
+            val stats = taskRepo.getUserStats(userId)
+            if (stats == null) {
+                taskRepo.saveUserStats(UserStats(
+                    userId = userId,
+                    healthScore = 100,
+                    totalStreak = 0,
+                    lastResetDate = LocalDate.now().toString()
+                ))
+            }
+            taskRepo.observeUserStats(userId).collect {
+                _userStats.value = it
+            }
+        }
+        viewModelScope.launch {
+            val today = LocalDate.now()
+            val start = today.minusDays(6).toString()
+            val end = today.toString()
+            taskRepo.observeTaskLogsForPeriod(userId, start, end).collect {
+                _weeklyTaskLogs.value = it
             }
         }
     }
@@ -99,6 +136,11 @@ class TaskViewModel(
         dueDate: String,
         dueTime: String,
         setAlarm: Boolean = false,
+        type: TaskType = TaskType.DAILY,
+        frequencyType: FrequencyType? = null,
+        fixedDays: List<Int> = emptyList(),
+        flexibleCount: Int = 0,
+        flexibleInterval: FlexibleInterval? = null,
     ) {
         val uid = authRepo.getCurrentUser()?.uid ?: return
 
@@ -112,6 +154,11 @@ class TaskViewModel(
                 dueTime     = dueTime,
                 userId      = uid,
                 alarmSet    = shouldSetAlarm,
+                type        = type,
+                frequencyType = frequencyType,
+                fixedDays   = fixedDays,
+                flexibleCount = flexibleCount,
+                flexibleInterval = flexibleInterval,
             )
             taskRepo.addTask(task)
                 .onSuccess { newId ->
@@ -165,9 +212,69 @@ class TaskViewModel(
     fun toggleDone(task: Task) {
         viewModelScope.launch {
             val newIsDone = !task.isDone
+            val userId = task.userId
+            val todayStr = LocalDate.now().toString()
+
+            if (newIsDone) {
+                val pointsGained = when (task.type) {
+                    TaskType.DAILY -> 5
+                    TaskType.HABIT -> {
+                        val yesterdayStr = LocalDate.now().minusDays(1).toString()
+                        val newStreak = when (task.lastCompletedDate) {
+                            yesterdayStr -> task.streak + 1
+                            todayStr -> task.streak
+                            else -> 1
+                        }
+                        val bonus = if (newStreak > 0 && newStreak % 5 == 0) 10 else 0
+                        val totalHabitPoints = 10 + bonus
+
+                        taskRepo.updateTask(task.copy(
+                            lastCompletedDate = todayStr,
+                            streak = newStreak,
+                            isDone = true
+                        ))
+                        totalHabitPoints
+                    }
+                }
+
+                val logId = java.util.UUID.randomUUID().toString()
+                taskRepo.addTaskLog(TaskLog(
+                    id = logId,
+                    taskId = task.id,
+                    userId = userId,
+                    completedDate = todayStr,
+                    pointsEarned = pointsGained
+                ))
+
+                val currentStats = taskRepo.getUserStats(userId) ?: UserStats(userId = userId)
+                val newScore = minOf(100, currentStats.healthScore + pointsGained)
+                taskRepo.saveUserStats(currentStats.copy(healthScore = newScore))
+            } else {
+                val taskLogs = taskRepo.getTaskLogsForPeriod(userId, todayStr, todayStr)
+                    .filter { it.taskId == task.id }
+                
+                var pointsLost = 0
+                for (log in taskLogs) {
+                    pointsLost += log.pointsEarned
+                }
+                taskRepo.deleteTaskLogsForTask(task.id)
+
+                if (task.type == TaskType.HABIT) {
+                    val yesterdayStr = LocalDate.now().minusDays(1).toString()
+                    taskRepo.updateTask(task.copy(
+                        lastCompletedDate = yesterdayStr,
+                        streak = maxOf(0, task.streak - 1),
+                        isDone = false
+                    ))
+                }
+
+                val currentStats = taskRepo.getUserStats(userId) ?: UserStats(userId = userId)
+                val newScore = maxOf(0, currentStats.healthScore - pointsLost)
+                taskRepo.saveUserStats(currentStats.copy(healthScore = newScore))
+            }
+
             taskRepo.toggleTaskDone(task.id, newIsDone)
                 .onSuccess {
-                    // Optimistic update — Room's Flow will confirm it shortly
                     val updated = _tasks.value.map {
                         if (it.id == task.id) it.copy(isDone = newIsDone) else it
                     }
@@ -177,6 +284,24 @@ class TaskViewModel(
                 }
         }
     }
+
+    // ── Suggestions ──────────────────────────────────────────────────────────
+    val taskSuggestions = listOf(
+        "Đọc sách 📚",
+        "Tập Gym 🏋️",
+        "Uống nước 💧",
+        "Học tiếng Anh 🇬🇧",
+        "Thiền định 🧘",
+        "Check email 📧",
+        "Lập kế hoạch tuần 📅"
+    )
+
+    val durationSuggestions = listOf(
+        "15 phút",
+        "30 phút",
+        "1 giờ",
+        "2 giờ"
+    )
 
     // ── Delete ────────────────────────────────────────────────────────────────
 
@@ -193,6 +318,18 @@ class TaskViewModel(
 
     fun resetState() {
         _taskUiState.value = TaskUiState.Idle
+    }
+
+    fun resetUserStats() {
+        val uid = authRepo.getCurrentUser()?.uid ?: return
+        viewModelScope.launch {
+            taskRepo.saveUserStats(UserStats(
+                userId = uid,
+                healthScore = 100,
+                totalStreak = 0,
+                lastResetDate = LocalDate.now().toString()
+            ))
+        }
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

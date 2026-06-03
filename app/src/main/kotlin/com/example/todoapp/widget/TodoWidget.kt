@@ -1,7 +1,7 @@
+// File: widget/TodoWidget.kt
 package com.example.todoapp.widget
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,47 +34,37 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
+import androidx.glance.text.TextDecoration
 import com.example.todoapp.MainActivity
 import com.example.todoapp.R
 import androidx.compose.ui.graphics.Color
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  TodoWidget — Jetpack Glance App Widget
-//
-//  Data flow:
-//   MainActivity / TaskViewModel
-//     → calls WidgetDataStore.saveTasks() after every task list update
-//     → calls TodoWidgetReceiver.requestWidgetUpdate()
-//   TodoWidget.provideContent()
-//     → reads WidgetDataStore.loadTasksOnce()  (instant, offline-safe)
-//     → renders the Glance UI
-//
-//  IMPORTANT — Glance API surface differs from Compose:
-//   • GlanceModifier  (not Modifier)
-//   • androidx.glance.layout.* (not androidx.compose.foundation.layout.*)
-//   • androidx.glance.text.Text (not androidx.compose.material3.Text)
-//   • No Brush gradients; use solid ColorProvider for backgrounds.
-//   • No rememberable state — Glance re-runs provideContent() on each update.
-// ══════════════════════════════════════════════════════════════════════════════
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
+import com.example.todoapp.data.mapper.toDomain
 
 class TodoWidget : GlanceAppWidget() {
 
-    // Maximum tasks shown in the widget to avoid over-filling the home screen.
     private val MAX_TASKS = 5
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // Read the DataStore cache — always fast, works offline.
+        // Read the DataStore cache
         val allTasks   = WidgetDataStore.loadTasksOnce(context)
         val pending    = allTasks.filter { !it.isDone }.take(MAX_TASKS)
         val totalCount = allTasks.count { !it.isDone }
+        
+        // Load stats
+        val stats = WidgetDataStore.loadStatsOnce(context)
 
         provideContent {
             GlanceTheme {
                 WidgetContent(
-                    context    = context,
-                    tasks      = pending,
-                    totalCount = totalCount,
+                    context     = context,
+                    tasks       = pending,
+                    totalCount  = totalCount,
+                    healthScore = stats.first,
+                    streak      = stats.second
                 )
             }
         }
@@ -90,6 +80,8 @@ private fun WidgetContent(
     context: Context,
     tasks: List<WidgetTask>,
     totalCount: Int,
+    healthScore: Int,
+    streak: Int,
 ) {
     // Soft mint background — Baemin pastel palette
     val bgColor       = ColorProvider(Color(0xFFE8FAF6))   // Mint100
@@ -98,7 +90,6 @@ private fun WidgetContent(
     val textOnHeader  = ColorProvider(Color.White)
     val textPrimary   = ColorProvider(Color(0xFF272D34))   // Neutral800
     val textSecondary = ColorProvider(Color(0xFF636D78))   // Neutral600
-    val accentColor   = ColorProvider(Color(0xFFFF6B4E))   // Coral500
     val doneBg        = ColorProvider(Color(0xFFC5F0E5))   // Mint200
 
     Box(
@@ -122,24 +113,21 @@ private fun WidgetContent(
                     modifier          = GlanceModifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Bell icon
                     Image(
                         provider    = ImageProvider(R.drawable.ic_alarm_notification),
                         contentDescription = "Tasks",
                         modifier    = GlanceModifier.size(18.dp),
                     )
                     Spacer(GlanceModifier.width(6.dp))
-                    // Title
                     Text(
-                        text  = "Today's Tasks",
+                        text  = "Mục tiêu ($healthScore đ, $streak🔥)",
                         style = TextStyle(
                             color      = textOnHeader,
-                            fontSize   = 14.sp,
+                            fontSize   = 13.sp,
                             fontWeight = FontWeight.Bold,
                         ),
                         modifier = GlanceModifier.defaultWeight(),
                     )
-                    // Pending badge
                     if (totalCount > 0) {
                         Box(
                             modifier = GlanceModifier
@@ -183,7 +171,6 @@ private fun WidgetContent(
                             doneBg        = doneBg,
                             textPrimary   = textPrimary,
                             textSecondary = textSecondary,
-                            accentColor   = accentColor,
                         )
                         Spacer(GlanceModifier.height(5.dp))
                     }
@@ -201,7 +188,7 @@ private fun WidgetContent(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text  = "＋  Open App",
+                    text  = "＋  Vào ứng dụng",
                     style = TextStyle(
                         color      = textOnHeader,
                         fontSize   = 13.sp,
@@ -223,7 +210,6 @@ private fun TaskRow(
     doneBg: ColorProvider,
     textPrimary: ColorProvider,
     textSecondary: ColorProvider,
-    accentColor: ColorProvider,
 ) {
     val rowBg = if (task.isDone) doneBg else cardBg
 
@@ -239,17 +225,17 @@ private fun TaskRow(
             modifier          = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Colored dot indicator
-            Box(
+            // Interactive Checkbox Emoji
+            Text(
+                text = if (task.isDone) "✅" else "⚪",
+                style = TextStyle(fontSize = 16.sp),
                 modifier = GlanceModifier
-                    .size(8.dp)
-                    .background(
-                        if (task.isDone)
-                            ColorProvider(Color(0xFF2BBFA0))   // Mint500
-                        else
-                            accentColor
-                    ),
-            ) {}
+                    .clickable(
+                        actionRunCallback<ToggleTaskCallback>(
+                            actionParametersOf(ToggleTaskCallback.TaskIdKey to task.id)
+                        )
+                    )
+            )
 
             Spacer(GlanceModifier.width(8.dp))
 
@@ -261,6 +247,7 @@ private fun TaskRow(
                         color      = textPrimary,
                         fontSize   = 13.sp,
                         fontWeight = FontWeight.Medium,
+                        textDecoration = if (task.isDone) TextDecoration.LineThrough else TextDecoration.None
                     ),
                 )
                 if (task.dueTime.isNotBlank()) {
@@ -273,18 +260,6 @@ private fun TaskRow(
                         ),
                     )
                 }
-            }
-
-            // Done checkmark
-            if (task.isDone) {
-                Text(
-                    text  = "✓",
-                    style = TextStyle(
-                        color      = ColorProvider(Color(0xFF2BBFA0)),
-                        fontSize   = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                )
             }
         }
     }
@@ -312,7 +287,7 @@ private fun EmptyState(
             )
             Spacer(GlanceModifier.height(8.dp))
             Text(
-                text  = "No tasks today!",
+                text  = "Không có mục tiêu nào hôm nay!",
                 style = TextStyle(
                     color      = textColor,
                     fontSize   = 13.sp,
@@ -322,7 +297,7 @@ private fun EmptyState(
             )
             Spacer(GlanceModifier.height(4.dp))
             Text(
-                text  = "Tap below to add one ✨",
+                text  = "Bấm vào đây để thêm mới ✨",
                 style = TextStyle(
                     color     = textColor,
                     fontSize  = 11.sp,
@@ -330,5 +305,39 @@ private fun EmptyState(
                 ),
             )
         }
+    }
+}
+
+// ── Glance Action Callback for Toggle ────────────────────────────────────────
+
+class ToggleTaskCallback : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        val taskId = parameters[TaskIdKey] ?: return
+        val db = com.example.todoapp.data.local.TodoDatabase.getDatabase(context)
+        val taskEntity = db.taskDao.getTaskById(taskId) ?: return
+        val newIsDone = !taskEntity.isDone
+
+        // 1. Toggle done in local database
+        db.taskDao.toggleTaskDone(taskId, newIsDone, System.currentTimeMillis())
+
+        // 2. Adjust stats healthScore (+5 if checked, -5 if unchecked)
+        val statsEntity = db.taskDao.getUserStats(taskEntity.userId)
+        if (statsEntity != null) {
+            val points = if (newIsDone) 5 else -5
+            val newScore = maxOf(0, minOf(100, statsEntity.healthScore + points))
+            db.taskDao.insertOrUpdateUserStats(statsEntity.copy(healthScore = newScore))
+        }
+
+        // 3. Refresh and update widget datastore cache
+        val tasks = db.taskDao.getTasksForUser(taskEntity.userId).map { it.toDomain() }
+        TodoWidgetReceiver.syncAndUpdate(context, tasks)
+    }
+
+    companion object {
+        val TaskIdKey = ActionParameters.Key<String>("taskId")
     }
 }

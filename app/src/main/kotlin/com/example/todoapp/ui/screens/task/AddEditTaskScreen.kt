@@ -6,59 +6,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccessTime
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Description
-import androidx.compose.material.icons.rounded.NotificationsActive
-import androidx.compose.material.icons.rounded.NotificationsOff
-import androidx.compose.material.icons.rounded.Title
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DisplayMode
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,22 +22,18 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.todoapp.domain.model.Task
+import com.example.todoapp.domain.model.TaskType
+import com.example.todoapp.domain.model.FrequencyType
+import com.example.todoapp.domain.model.FlexibleInterval
 import com.example.todoapp.presentation.task.TaskUiState
 import com.example.todoapp.presentation.task.TaskViewModel
 import com.example.todoapp.ui.components.RoundedTextField
-import com.example.todoapp.ui.theme.DialogShape
-import com.example.todoapp.ui.theme.Mint100
-import com.example.todoapp.ui.theme.Mint500
-import com.example.todoapp.ui.theme.PillShape
-import com.example.todoapp.ui.theme.TextFieldShape
+import com.example.todoapp.ui.theme.*
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  AddEditTaskScreen
-// ══════════════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,28 +42,41 @@ fun AddEditTaskScreen(
     taskId: String?,
     onNavigateBack: () -> Unit,
 ) {
-    val uiState   by viewModel.taskUiState.collectAsState()
-    val isEditing  = taskId != null
+    val uiState by viewModel.taskUiState.collectAsState()
+    val isEditing = taskId != null
 
     LaunchedEffect(taskId) {
         if (taskId != null) viewModel.loadTask(taskId)
-        else                viewModel.clearTaskForm()
+        else viewModel.clearTaskForm()
     }
 
-    var title       by rememberSaveable { mutableStateOf("") }
+    var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
-    var dueDate     by rememberSaveable { mutableStateOf("") }
-    var dueTime     by rememberSaveable { mutableStateOf("") }
-    var setAlarm    by rememberSaveable { mutableStateOf(true) }
+    var dueDate by rememberSaveable { mutableStateOf("") }
+    var dueTime by rememberSaveable { mutableStateOf("") }
+    var setAlarm by rememberSaveable { mutableStateOf(true) }
+
+    // --- Giai Đoạn 2 States ---
+    var taskType by rememberSaveable { mutableStateOf(TaskType.DAILY) }
+    var frequencyType by rememberSaveable { mutableStateOf(FrequencyType.FIXED) }
+    var fixedDays by rememberSaveable { mutableStateOf(emptyList<Int>()) }
+    var flexibleCount by rememberSaveable { mutableStateOf(1) }
+    var flexibleInterval by rememberSaveable { mutableStateOf(FlexibleInterval.WEEK) }
 
     val editingTask = (uiState as? TaskUiState.Editing)?.task
     LaunchedEffect(editingTask) {
         editingTask?.let { t ->
-            title       = t.title
+            title = t.title
             description = t.description
-            dueDate     = t.dueDate
-            dueTime     = t.dueTime
-            setAlarm    = t.alarmSet
+            dueDate = t.dueDate
+            dueTime = t.dueTime
+            setAlarm = t.alarmSet
+
+            taskType = t.type
+            frequencyType = t.frequencyType ?: FrequencyType.FIXED
+            fixedDays = t.fixedDays
+            flexibleCount = if (t.flexibleCount > 0) t.flexibleCount else 1
+            flexibleInterval = t.flexibleInterval ?: FlexibleInterval.WEEK
         }
     }
 
@@ -123,14 +88,10 @@ fun AddEditTaskScreen(
     var showTimePicker by remember { mutableStateOf(false) }
     val isSaving = uiState is TaskUiState.Loading
 
-    // Hoisted outside the dialog conditional so the state is created once and
-    // reused — creating DatePickerState inside an `if` block causes an
-    // expensive re-allocation + full layout pass every time the dialog opens.
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = dueDate.toEpochMilliOrNull()
     )
 
-    // ── Fix: Prevent Infinite Recomposition & Focus Glitch ─────────────────────
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -146,7 +107,7 @@ fun AddEditTaskScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text  = if (isEditing) "Edit Task ✏️" else "New Task ✨",
+                        text = if (isEditing) "Chỉnh sửa mục tiêu ✏️" else "Mục tiêu mới ✨",
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -172,115 +133,305 @@ fun AddEditTaskScreen(
         ) {
             Spacer(Modifier.height(4.dp))
 
-            // ── Title ──────────────────────────────────────────────────────────
-            FormSectionLabel(emoji = "📝", label = "Title")
-            RoundedTextField(
-                value         = title,
-                onValueChange = { title = it },
-                label         = "What do you need to do?",
-                leadingIcon   = { Icon(Icons.Rounded.Title, null, tint = Mint500) },
-                enabled       = !isSaving,
-            )
+            // ── Phân loại Task ─────────────────────────────────────────────────
+            FormSectionLabel(emoji = "🏷️", label = "Loại mục tiêu")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FilterChip(
+                    selected = taskType == TaskType.DAILY,
+                    onClick = { taskType = TaskType.DAILY },
+                    label = { Text("Hàng ngày (Daily)") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Mint100,
+                        selectedLabelColor = Mint500
+                    )
+                )
+                FilterChip(
+                    selected = taskType == TaskType.HABIT,
+                    onClick = { taskType = TaskType.HABIT },
+                    label = { Text("Thói quen (Habit)") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Mint100,
+                        selectedLabelColor = Mint500
+                    )
+                )
+            }
 
             Spacer(Modifier.height(4.dp))
 
-            // ── Description ────────────────────────────────────────────────────
-            FormSectionLabel(emoji = "💬", label = "Description")
+            // ── Tiêu đề ────────────────────────────────────────────────────────
+            FormSectionLabel(emoji = "📝", label = "Tiêu đề")
+            RoundedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = "Bạn cần thực hiện việc gì?",
+                leadingIcon = { Icon(Icons.Rounded.Title, null, tint = Mint500) },
+                enabled = !isSaving,
+            )
+
+            // Gợi ý thông minh (Suggestions)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                viewModel.taskSuggestions.forEach { suggestion ->
+                    SuggestionChip(
+                        onClick = { title = suggestion },
+                        label = { Text(suggestion) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            // ── Habit Configuration (Chỉ hiện khi chọn Habit) ────────────────
+            if (taskType == TaskType.HABIT) {
+                FormSectionLabel(emoji = "🔄", label = "Chu kỳ thói quen")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    FilterChip(
+                        selected = frequencyType == FrequencyType.FIXED,
+                        onClick = { frequencyType = FrequencyType.FIXED },
+                        label = { Text("Ngày cố định") }
+                    )
+                    FilterChip(
+                        selected = frequencyType == FrequencyType.FLEXIBLE,
+                        onClick = { frequencyType = FrequencyType.FLEXIBLE },
+                        label = { Text("Số buổi linh hoạt") }
+                    )
+                }
+
+                if (frequencyType == FrequencyType.FIXED) {
+                    Text("Lặp lại vào các ngày:", style = MaterialTheme.typography.bodySmall)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        val weekdays = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+                        weekdays.forEachIndexed { index, day ->
+                            val dayVal = index + 1
+                            val isSelected = fixedDays.contains(dayVal)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    fixedDays = if (isSelected) fixedDays - dayVal else fixedDays + dayVal
+                                },
+                                label = { Text(day) }
+                            )
+                        }
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text("Số lần cần làm: $flexibleCount")
+                            Slider(
+                                value = flexibleCount.toFloat(),
+                                onValueChange = { flexibleCount = it.toInt() },
+                                valueRange = 1f..7f,
+                                steps = 5,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            FilterChip(
+                                selected = flexibleInterval == FlexibleInterval.WEEK,
+                                onClick = { flexibleInterval = FlexibleInterval.WEEK },
+                                label = { Text("Mỗi tuần") }
+                            )
+                            FilterChip(
+                                selected = flexibleInterval == FlexibleInterval.MONTH,
+                                onClick = { flexibleInterval = FlexibleInterval.MONTH },
+                                label = { Text("Mỗi tháng") }
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+
+            // ── Mô tả ──────────────────────────────────────────────────────────
+            FormSectionLabel(emoji = "💬", label = "Mô tả chi tiết")
             OutlinedTextField(
-                value            = description,
-                onValueChange    = { description = it },
-                label            = { Text("Add more details (optional)") },
-                leadingIcon      = { Icon(Icons.Rounded.Description, null, tint = Mint500) },
-                minLines         = 3,
-                maxLines         = 6,
-                enabled          = !isSaving,
-                shape            = TextFieldShape,
-                colors           = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor      = Mint500,
-                    unfocusedBorderColor    = MaterialTheme.colorScheme.outline,
-                    focusedLabelColor       = Mint500,
-                    cursorColor             = Mint500,
-                    focusedContainerColor   = Mint100.copy(alpha = 0.3f),
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Thêm ghi chú cụ thể (không bắt buộc)") },
+                leadingIcon = { Icon(Icons.Rounded.Description, null, tint = Mint500) },
+                minLines = 3,
+                maxLines = 6,
+                enabled = !isSaving,
+                shape = TextFieldShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Mint500,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = Mint500,
+                    cursorColor = Mint500,
+                    focusedContainerColor = Mint100.copy(alpha = 0.3f),
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(Modifier.height(4.dp))
-
-            // ── Due Date ───────────────────────────────────────────────────────
-            FormSectionLabel(emoji = "📅", label = "Due Date")
-            DateTimePickerField(
-                value       = dueDate,
-                placeholder = "Pick a date",
-                icon        = { Icon(Icons.Rounded.CalendarMonth, null, tint = Mint500) },
-                onClick     = { showDatePicker = true },
-            )
-
-            // ── Due Time ───────────────────────────────────────────────────────
-            FormSectionLabel(emoji = "⏰", label = "Due Time")
-            DateTimePickerField(
-                value       = dueTime,
-                placeholder = "Pick a time",
-                icon        = { Icon(Icons.Rounded.AccessTime, null, tint = Mint500) },
-                onClick     = { showTimePicker = true },
-            )
+            // Gợi ý thời lượng thói quen
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                viewModel.durationSuggestions.forEach { duration ->
+                    SuggestionChip(
+                        onClick = {
+                            if (description.isBlank()) description = duration
+                            else description += " - $duration"
+                        },
+                        label = { Text(duration) }
+                    )
+                }
+            }
 
             Spacer(Modifier.height(4.dp))
 
-            // ── Alarm toggle (only when date + time are set) ───────────────────
+            // ── Ngày hạn chót ──────────────────────────────────────────────────
+            FormSectionLabel(emoji = "📅", label = "Ngày thực hiện")
+            Text(
+                text = "Hạn chót thực hiện công việc hoặc ngày bắt đầu thói quen",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            DateTimePickerField(
+                value = dueDate,
+                placeholder = "Chọn ngày thực hiện",
+                icon = { Icon(Icons.Rounded.CalendarMonth, null, tint = Mint500) },
+                onClick = { showDatePicker = true },
+            )
+
+            // Gợi ý ngày nhanh
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val todayStr = LocalDate.now().toString()
+                val tomorrowStr = LocalDate.now().plusDays(1).toString()
+                val weekendStr = LocalDate.now().with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SATURDAY)).toString()
+                val nextWeekStr = LocalDate.now().plusWeeks(1).toString()
+
+                SuggestionChip(onClick = { dueDate = todayStr }, label = { Text("Hôm nay") })
+                SuggestionChip(onClick = { dueDate = tomorrowStr }, label = { Text("Ngày mai") })
+                SuggestionChip(onClick = { dueDate = weekendStr }, label = { Text("Cuối tuần") })
+                SuggestionChip(onClick = { dueDate = nextWeekStr }, label = { Text("Tuần sau") })
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            // ── Giờ hạn chót ───────────────────────────────────────────────────
+            FormSectionLabel(emoji = "⏰", label = "Thời gian")
+            Text(
+                text = "Thời điểm hệ thống sẽ đổ chuông báo thức nhắc nhở",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            DateTimePickerField(
+                value = dueTime,
+                placeholder = "Chọn giờ",
+                icon = { Icon(Icons.Rounded.AccessTime, null, tint = Mint500) },
+                onClick = { showTimePicker = true },
+            )
+
+            // Gợi ý giờ nhanh
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SuggestionChip(onClick = { dueTime = "07:00" }, label = { Text("07:00 (Sáng)") })
+                SuggestionChip(onClick = { dueTime = "09:00" }, label = { Text("09:00 (Học tập)") })
+                SuggestionChip(onClick = { dueTime = "14:00" }, label = { Text("14:00 (Chiều)") })
+                SuggestionChip(onClick = { dueTime = "20:00" }, label = { Text("20:00 (Tối)") })
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            // ── Alarm toggle ──────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = dueDate.isNotBlank() && dueTime.isNotBlank(),
-                enter   = fadeIn(),
-                exit    = fadeOut(),
+                enter = fadeIn(),
+                exit = fadeOut(),
             ) {
                 AlarmToggleRow(checked = setAlarm, onChecked = { setAlarm = it })
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // ── Save button ────────────────────────────────────────────────────
+            // ── Nút Lưu ────────────────────────────────────────────────────────
             Button(
                 onClick = {
+                    val finalFreqType = if (taskType == TaskType.HABIT) frequencyType else null
+                    val finalFixedDays = if (taskType == TaskType.HABIT && frequencyType == FrequencyType.FIXED) fixedDays else emptyList()
+                    val finalFlexCount = if (taskType == TaskType.HABIT && frequencyType == FrequencyType.FLEXIBLE) flexibleCount else 0
+                    val finalFlexInterval = if (taskType == TaskType.HABIT && frequencyType == FrequencyType.FLEXIBLE) flexibleInterval else null
+
                     if (isEditing && editingTask != null) {
                         viewModel.updateTask(
                             editingTask.copy(
-                                title       = title.trim(),
+                                title = title.trim(),
                                 description = description.trim(),
-                                dueDate     = dueDate,
-                                dueTime     = dueTime,
-                                alarmSet    = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank(),
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                alarmSet = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank(),
+                                type = taskType,
+                                frequencyType = finalFreqType,
+                                fixedDays = finalFixedDays,
+                                flexibleCount = finalFlexCount,
+                                flexibleInterval = finalFlexInterval
                             )
                         )
                     } else {
                         viewModel.addTask(
-                            title       = title.trim(),
+                            title = title.trim(),
                             description = description.trim(),
-                            dueDate     = dueDate,
-                            dueTime     = dueTime,
-                            setAlarm    = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank(),
+                            dueDate = dueDate,
+                            dueTime = dueTime,
+                            setAlarm = setAlarm && dueDate.isNotBlank() && dueTime.isNotBlank(),
+                            type = taskType,
+                            frequencyType = finalFreqType,
+                            fixedDays = finalFixedDays,
+                            flexibleCount = finalFlexCount,
+                            flexibleInterval = finalFlexInterval
                         )
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape    = PillShape,
-                colors   = ButtonDefaults.buttonColors(
+                shape = PillShape,
+                colors = ButtonDefaults.buttonColors(
                     containerColor = Mint500,
-                    contentColor   = Color.White,
+                    contentColor = Color.White,
                 ),
                 enabled = !isSaving && title.isNotBlank(),
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(22.dp),
-                        color       = Color.White,
+                        modifier = Modifier.size(22.dp),
+                        color = Color.White,
                         strokeWidth = 2.5.dp,
                     )
                 } else {
                     Icon(Icons.Rounded.Check, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
                     Text(
-                        text  = if (isEditing) "Save Changes" else "Add Task",
+                        text = if (isEditing) "Lưu thay đổi" else "Thêm mục tiêu",
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
@@ -294,7 +445,7 @@ fun AddEditTaskScreen(
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
-            confirmButton    = {
+            confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
                         dueDate = Instant.ofEpochMilli(millis)
@@ -303,10 +454,10 @@ fun AddEditTaskScreen(
                             .format(DateTimeFormatter.ISO_LOCAL_DATE)
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text("Xác nhận") }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text("Hủy") }
             },
             shape = DialogShape,
         ) {
@@ -318,34 +469,34 @@ fun AddEditTaskScreen(
     if (showTimePicker) {
         val (initHour, initMin) = dueTime.parseHourMin()
         val timePickerState = rememberTimePickerState(
-            initialHour   = initHour,
+            initialHour = initHour,
             initialMinute = initMin,
-            is24Hour      = true,
+            is24Hour = true,
         )
         Dialog(onDismissRequest = { showTimePicker = false }) {
             Surface(shape = DialogShape, color = MaterialTheme.colorScheme.surface) {
                 Column(
-                    modifier            = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        "Pick a time ⏰",
-                        style    = MaterialTheme.typography.titleMedium,
+                        "Chọn thời gian ⏰",
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 20.dp),
                     )
                     TimePicker(state = timePickerState)
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                     ) {
-                        TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                        TextButton(onClick = { showTimePicker = false }) { Text("Hủy") }
                         TextButton(onClick = {
                             dueTime = "%02d:%02d".format(
                                 timePickerState.hour,
                                 timePickerState.minute,
                             )
                             showTimePicker = false
-                        }) { Text("OK") }
+                        }) { Text("Xác nhận") }
                     }
                 }
             }
@@ -353,9 +504,7 @@ fun AddEditTaskScreen(
     }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  Sub-components
-// ══════════════════════════════════════════════════════════════════════════════
+// ── Sub-components ──────────────────────────────────────────────────────────
 
 @Composable
 private fun FormSectionLabel(emoji: String, label: String) {
@@ -363,18 +512,13 @@ private fun FormSectionLabel(emoji: String, label: String) {
         Text(emoji)
         Spacer(Modifier.size(6.dp))
         Text(
-            text  = label,
+            text = label,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
 
-/**
- * A read-only field that opens a picker dialog when tapped.
- * Uses a transparent [Box] overlay with [clickable] over a [readOnly] TextField —
- * the correct pattern for non-keyboard input fields in Compose.
- */
 @Composable
 private fun DateTimePickerField(
     value: String,
@@ -384,26 +528,25 @@ private fun DateTimePickerField(
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value            = value,
-            onValueChange    = {},
-            readOnly         = true,
-            placeholder      = {
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            placeholder = {
                 Text(
-                    text  = placeholder,
+                    text = placeholder,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
-            leadingIcon      = icon,
-            shape            = TextFieldShape,
-            colors           = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor      = Mint500,
-                unfocusedBorderColor    = MaterialTheme.colorScheme.outline,
-                focusedContainerColor   = Mint100.copy(alpha = 0.3f),
+            leadingIcon = icon,
+            shape = TextFieldShape,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Mint500,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedContainerColor = Mint100.copy(alpha = 0.3f),
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
             ),
             modifier = Modifier.fillMaxWidth(),
         )
-        // Transparent clickable overlay — captures tap without stealing text input focus
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -424,47 +567,43 @@ private fun AlarmToggleRow(checked: Boolean, onChecked: (Boolean) -> Unit) {
             )
             .padding(horizontal = 20.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(
-                imageVector        = if (checked) Icons.Rounded.NotificationsActive
-                                     else         Icons.Rounded.NotificationsOff,
+                imageVector = if (checked) Icons.Rounded.NotificationsActive
+                else Icons.Rounded.NotificationsOff,
                 contentDescription = "Alarm",
-                tint               = if (checked) Mint500 else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier           = Modifier.size(24.dp),
+                tint = if (checked) Mint500 else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
             )
             Column {
                 Text(
-                    text  = "Set Alarm",
+                    text = "Hẹn giờ nhắc nhở",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text  = if (checked) "Will ring at due time 🔔" else "No alarm",
+                    text = if (checked) "Chuông sẽ báo vào thời gian đã chọn 🔔" else "Không báo chuông",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
         Switch(
-            checked         = checked,
+            checked = checked,
             onCheckedChange = onChecked,
-            colors          = SwitchDefaults.colors(
-                checkedThumbColor   = Color.White,
-                checkedTrackColor   = Mint500,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = Mint500,
                 uncheckedTrackColor = MaterialTheme.colorScheme.outline,
             ),
         )
     }
 }
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  Helpers
-// ══════════════════════════════════════════════════════════════════════════════
 
 private fun String.toEpochMilliOrNull(): Long? = runCatching {
     LocalDate.parse(this)

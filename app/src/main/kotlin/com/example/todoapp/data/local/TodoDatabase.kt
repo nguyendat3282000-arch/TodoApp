@@ -18,10 +18,18 @@ import com.example.todoapp.data.local.entity.TaskEntity
  * Schema version is pinned to 1. Use [RoomDatabase.Builder.addMigrations] for
  * production migration paths instead of [fallbackToDestructiveMigration].
  */
-@Database(entities = [TaskEntity::class], version = 1, exportSchema = false)
+import com.example.todoapp.data.local.entity.TaskLogEntity
+import com.example.todoapp.data.local.entity.UserStatsEntity
+
+@Database(
+    entities = [TaskEntity::class, TaskLogEntity::class, UserStatsEntity::class],
+    version = 2,
+    exportSchema = false
+)
 abstract class TodoDatabase : RoomDatabase() {
 
     abstract val taskDao: TaskDao
+
 
     companion object {
         @Volatile

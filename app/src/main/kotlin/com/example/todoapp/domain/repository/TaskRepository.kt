@@ -2,6 +2,8 @@
 package com.example.todoapp.domain.repository
 
 import com.example.todoapp.domain.model.Task
+import com.example.todoapp.domain.model.UserStats
+import com.example.todoapp.domain.model.TaskLog
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -93,4 +95,20 @@ interface TaskRepository {
      * alarms after a device reboot, when the current user session is not available.
      */
     fun observeAlarmSetTasks(): Flow<List<Task>>
+
+    // ── Giai Đoạn 2: Gamification & Logs ──────────────────────────────────────
+
+    fun observeUserStats(userId: String): Flow<UserStats?>
+
+    suspend fun getUserStats(userId: String): UserStats?
+
+    suspend fun saveUserStats(stats: UserStats): Result<Unit>
+
+    fun observeTaskLogsForPeriod(userId: String, startDate: String, endDate: String): Flow<List<TaskLog>>
+
+    suspend fun getTaskLogsForPeriod(userId: String, startDate: String, endDate: String): List<TaskLog>
+
+    suspend fun addTaskLog(log: TaskLog): Result<Unit>
+
+    suspend fun deleteTaskLogsForTask(taskId: String): Result<Unit>
 }

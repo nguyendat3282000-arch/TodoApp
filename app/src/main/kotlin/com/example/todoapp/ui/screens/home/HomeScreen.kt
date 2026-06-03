@@ -854,6 +854,16 @@ private fun TaskDetailsContent(
             if (task.dueDate.isNotBlank()) {
                 ChipInfo(emoji = "📅", text = formatDate(task.dueDate))
             }
+            if (task.type == TaskType.HABIT) {
+                if (task.frequencyType == com.example.todoapp.domain.model.FrequencyType.FIXED && task.fixedDays.isNotEmpty()) {
+                    val daysMap = mapOf(1 to "T2", 2 to "T3", 3 to "T4", 4 to "T5", 5 to "T6", 6 to "T7", 7 to "CN")
+                    val daysStr = task.fixedDays.sorted().joinToString(", ") { daysMap[it] ?: "" }
+                    ChipInfo(emoji = "🔄", text = daysStr)
+                } else if (task.frequencyType == com.example.todoapp.domain.model.FrequencyType.FLEXIBLE) {
+                    val intervalStr = if (task.flexibleInterval == com.example.todoapp.domain.model.FlexibleInterval.WEEK) "tuần" else "tháng"
+                    ChipInfo(emoji = "🎯", text = "${task.flexibleCount} lần/$intervalStr")
+                }
+            }
             if (task.dueTime.isNotBlank()) {
                 ChipInfo(emoji = "⏰", text = task.dueTime)
             }

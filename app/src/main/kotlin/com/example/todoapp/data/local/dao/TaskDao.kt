@@ -115,5 +115,8 @@ interface TaskDao {
 
     @Query("DELETE FROM task_logs WHERE taskId = :taskId")
     suspend fun deleteTaskLogsForTask(taskId: String)
+
+    @Query("DELETE FROM task_logs WHERE taskId = :taskId AND completedDate = :date")
+    suspend fun deleteTaskLogForDate(taskId: String, date: String)
 }
 

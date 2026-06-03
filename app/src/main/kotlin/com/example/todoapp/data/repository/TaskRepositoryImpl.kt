@@ -131,4 +131,8 @@ class TaskRepositoryImpl(
     override suspend fun deleteTaskLogsForTask(taskId: String): Result<Unit> = runCatching {
         dao.deleteTaskLogsForTask(taskId)
     }
+
+    override suspend fun deleteTaskLogForDate(taskId: String, date: String): Result<Unit> = runCatching {
+        dao.deleteTaskLogForDate(taskId, date)
+    }
 }

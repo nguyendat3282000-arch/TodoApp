@@ -421,7 +421,7 @@ fun AddEditTaskScreen(
                     containerColor = Mint500,
                     contentColor = Color.White,
                 ),
-                enabled = !isSaving && title.isNotBlank(),
+                enabled = !isSaving && title.isNotBlank() && !(taskType == TaskType.HABIT && frequencyType == FrequencyType.FIXED && fixedDays.isEmpty()),
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(

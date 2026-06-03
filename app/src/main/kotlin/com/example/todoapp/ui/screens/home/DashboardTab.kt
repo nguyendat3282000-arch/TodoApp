@@ -35,6 +35,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.todoapp.domain.model.FrequencyType
 import com.example.todoapp.domain.model.Task
 import com.example.todoapp.domain.model.TaskType
 import com.example.todoapp.domain.model.UserStats
@@ -265,9 +266,17 @@ fun DashboardTabContent(
                     // Habits completed on this day
                     val completedHabits = tasks.filter { it.type == TaskType.HABIT && it.id in completedHabitIds }
                     
+                    // Pending Fixed Habits for this day
+                    val pendingHabits = tasks.filter { task ->
+                        task.type == TaskType.HABIT && 
+                        task.frequencyType == FrequencyType.FIXED &&
+                        task.fixedDays.contains(selectedDate.dayOfWeek.value) &&
+                        task.id !in completedHabitIds
+                    }
+                    
                     // Daily completed/pending + Habits completed
                     val done = dailyForDay.filter { it.isDone } + completedHabits.map { it.copy(isDone = true) }
-                    val pending = dailyForDay.filter { !it.isDone }
+                    val pending = dailyForDay.filter { !it.isDone } + pendingHabits.map { it.copy(isDone = false) }
                     
                     Pair(done, pending)
                 }

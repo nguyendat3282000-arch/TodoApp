@@ -70,9 +70,18 @@ class TaskViewModel(
     fun loadTasksForUser(userId: String) {
         viewModelScope.launch {
             taskRepo.observeTasksForUser(userId).collect { list ->
-                _tasks.value = list
-                syncWidget(list)
-                syncDailySummary(list)
+                val todayStr = LocalDate.now().toString()
+                val tasksToReset = list.filter { it.type == TaskType.HABIT && it.isDone && it.lastCompletedDate != todayStr }
+                
+                if (tasksToReset.isNotEmpty()) {
+                    tasksToReset.forEach { task ->
+                        taskRepo.updateTask(task.copy(isDone = false))
+                    }
+                } else {
+                    _tasks.value = list
+                    syncWidget(list)
+                    syncDailySummary(list)
+                }
             }
         }
         loadUserStatsAndLogs(userId)
@@ -271,7 +280,7 @@ class TaskViewModel(
                 for (log in taskLogs) {
                     pointsLost += log.pointsEarned
                 }
-                taskRepo.deleteTaskLogsForTask(task.id)
+                taskRepo.deleteTaskLogForDate(task.id, todayStr)
 
                 if (task.type == TaskType.HABIT) {
                     val yesterdayStr = LocalDate.now().minusDays(1).toString()

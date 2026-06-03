@@ -111,4 +111,6 @@ interface TaskRepository {
     suspend fun addTaskLog(log: TaskLog): Result<Unit>
 
     suspend fun deleteTaskLogsForTask(taskId: String): Result<Unit>
+
+    suspend fun deleteTaskLogForDate(taskId: String, date: String): Result<Unit>
 }

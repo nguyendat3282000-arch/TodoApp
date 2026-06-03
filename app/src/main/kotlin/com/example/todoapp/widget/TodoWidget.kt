@@ -8,8 +8,6 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.Image
-import androidx.glance.ImageProvider
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
@@ -41,18 +39,16 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextDecoration
 import androidx.glance.text.TextStyle
 import com.example.todoapp.MainActivity
-import com.example.todoapp.R
 import com.example.todoapp.data.mapper.toDomain
 
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.LocalSize
-import androidx.glance.unit.ColorProvider
 
 class TodoWidget : GlanceAppWidget() {
 
     override val sizeMode = SizeMode.Exact
 
-    private val MAX_TASKS = 5
+    private val maxTasks = 5
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val db = com.example.todoapp.data.local.TodoDatabase.getDatabase(context)
@@ -83,14 +79,14 @@ class TodoWidget : GlanceAppWidget() {
             }
         }
 
-        // Show pending tasks first, then done tasks, up to MAX_TASKS
+        // Show pending tasks first, then done tasks, up to maxTasks
         val pending = todayTasks
             .filter { !it.isDone }
-            .take(MAX_TASKS)
+            .take(maxTasks)
             .map { WidgetTask(id = it.id, title = it.title, dueTime = it.dueTime, isDone = it.isDone) }
         val doneTasks = todayTasks
             .filter { it.isDone }
-            .take(maxOf(0, MAX_TASKS - pending.size))
+            .take(maxOf(0, maxTasks - pending.size))
             .map { WidgetTask(id = it.id, title = it.title, dueTime = it.dueTime, isDone = it.isDone) }
             
         val displayTasks = pending + doneTasks
@@ -102,7 +98,6 @@ class TodoWidget : GlanceAppWidget() {
         provideContent {
             GlanceTheme {
                 WidgetContent(
-                    context     = context,
                     tasks       = displayTasks,
                     totalCount  = totalCount,
                     healthScore = healthScore,
@@ -119,7 +114,6 @@ class TodoWidget : GlanceAppWidget() {
 
 @Composable
 private fun WidgetContent(
-    context: Context,
     tasks: List<WidgetTask>,
     totalCount: Int,
     healthScore: Int,
@@ -251,10 +245,10 @@ private fun WidgetContent(
 @Composable
 private fun TaskRow(
     task: WidgetTask,
-    cardBg: ColorProvider,
-    doneBg: ColorProvider,
-    textPrimary: ColorProvider,
-    textSecondary: ColorProvider,
+    cardBg: androidx.glance.unit.ColorProvider,
+    doneBg: androidx.glance.unit.ColorProvider,
+    textPrimary: androidx.glance.unit.ColorProvider,
+    textSecondary: androidx.glance.unit.ColorProvider,
 ) {
     val rowBg = if (task.isDone) doneBg else cardBg
 
@@ -324,8 +318,8 @@ private fun TaskRow(
 @Composable
 private fun EmptyState(
     modifier: GlanceModifier,
-    surfaceColor: ColorProvider,
-    textColor: ColorProvider,
+    surfaceColor: androidx.glance.unit.ColorProvider,
+    textColor: androidx.glance.unit.ColorProvider,
 ) {
     Box(
         modifier          = modifier.background(surfaceColor).cornerRadius(16.dp).padding(16.dp),

@@ -6,45 +6,52 @@ import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  Shape system — Extra-large corner radii everywhere for the cute Baemin vibe
+//  Shape system — Modern Buddy / Stitch design tokens
+//  DEFAULT: 1rem | lg: 2rem | xl: 3rem | full: pill
 // ══════════════════════════════════════════════════════════════════════════════
 
 val TodoShapes = Shapes(
-    // Used by: small chips, snackbars, tooltips
+    // Chips, snackbars
     extraSmall = RoundedCornerShape(8.dp),
 
-    // Used by: TextFields, small cards, menu items
-    small = RoundedCornerShape(12.dp),
+    // Inputs, small cards
+    small = RoundedCornerShape(16.dp),   // ~1rem
 
-    // Used by: Buttons, standard cards
-    medium = RoundedCornerShape(20.dp),
+    // Buttons, standard cards
+    medium = RoundedCornerShape(16.dp),
 
-    // Used by: Dialogs, bottom sheets, task cards
-    large = RoundedCornerShape(28.dp),
+    // Dialogs, task cards, glass cards
+    large = RoundedCornerShape(24.dp),   // Stitch "rounded-xl" ≈ 2rem
 
-    // Used by: Full-screen sheets, hero cards, FAB container
+    // Hero panels, bottom sheets
     extraLarge = RoundedCornerShape(36.dp),
 )
 
-// ── Convenience shape constants referenced directly in composables ─────────────
+// ── Named shape constants ─────────────────────────────────────────────────────
 
-/** Pill / stadium shape — used for primary buttons */
+/** Pill / stadium — primary buttons, bottom nav items, input fields */
 val PillShape = RoundedCornerShape(50)
 
-/** Rounded card shape — used for TaskCard */
-val CardShape = RoundedCornerShape(24.dp)
+/** Glass card — task cards, greeting panel */
+val CardShape = RoundedCornerShape(24.dp)      // rounded-xl in Stitch
 
-/** TextField shape — rounded but not pill */
-val TextFieldShape = RoundedCornerShape(16.dp)
+/** Input field — pill for single-line, rounded for textarea */
+val TextFieldShape = PillShape
 
-/** Bottom-sheet top corners only */
+/** Textarea / multi-line field */
+val TextAreaShape = RoundedCornerShape(24.dp)  // textarea-pill in Stitch
+
+/** Bottom-sheet — top corners only */
 val BottomSheetShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 
-/** Top bar / hero banner — bottom corners only */
-val HeroBannerShape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp)
+/** Hero banner — bottom corners only */
+val HeroBannerShape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+
+/** Floating bottom nav bar */
+val FloatingNavShape = RoundedCornerShape(9999.dp)
 
 /** Small chip / badge */
 val ChipShape = CircleShape
 
-/** Dialog  */
+/** Dialog */
 val DialogShape = RoundedCornerShape(32.dp)

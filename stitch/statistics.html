@@ -1,0 +1,252 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Statistics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&amp;family=Quicksand:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2b322f",
+                        "primary-container": "#8fa596",
+                        "primary": "#4e6356",
+                        "surface-container-highest": "#dde4df",
+                        "surface-tint": "#4e6356",
+                        "inverse-primary": "#b5ccbc",
+                        "on-background": "#161d1a",
+                        "surface-container-low": "#eef5f0",
+                        "on-secondary-container": "#4f6a5b",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#6e5b49",
+                        "primary-fixed-dim": "#b5ccbc",
+                        "on-secondary-fixed-variant": "#324c3e",
+                        "on-tertiary-fixed": "#26190b",
+                        "outline": "#737873",
+                        "on-primary-fixed-variant": "#374b3f",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#b0cdbb",
+                        "secondary-container": "#ccead6",
+                        "surface-dim": "#d5dcd7",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e3eae5",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#f8dec6",
+                        "surface": "#f4fbf6",
+                        "surface-bright": "#f4fbf6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#554432",
+                        "on-surface": "#161d1a",
+                        "on-primary-fixed": "#0c1f15",
+                        "outline-variant": "#c2c8c2",
+                        "background": "#f4fbf6",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#dde4df",
+                        "inverse-on-surface": "#ebf2ed",
+                        "secondary-fixed": "#ccead6",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#433423",
+                        "on-surface-variant": "#424844",
+                        "secondary": "#496455",
+                        "tertiary-fixed-dim": "#dbc2ac",
+                        "tertiary-container": "#b29c87",
+                        "surface-container": "#e9f0eb",
+                        "primary-fixed": "#d1e8d8",
+                        "on-secondary-fixed": "#062014",
+                        "on-primary-container": "#273b2f",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "32px",
+                        "stack-gap": "16px",
+                        "container-padding": "24px",
+                        "base": "8px",
+                        "glass-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": [
+                            "Plus Jakarta Sans"
+                        ],
+                        "label-md": [
+                            "Plus Jakarta Sans"
+                        ],
+                        "display-lg": [
+                            "Quicksand"
+                        ],
+                        "headline-sm": [
+                            "Quicksand"
+                        ],
+                        "body-lg": [
+                            "Plus Jakarta Sans"
+                        ],
+                        "headline-md": [
+                            "Quicksand"
+                        ]
+                    },
+                    "fontSize": {
+                        "body-md": [
+                            "14px",
+                            {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "label-md": [
+                            "12px",
+                            {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "display-lg": [
+                            "32px",
+                            {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "headline-sm": [
+                            "20px",
+                            {
+                                "lineHeight": "28px",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "body-lg": [
+                            "16px",
+                            {
+                                "lineHeight": "24px",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "headline-md": [
+                            "24px",
+                            {
+                                "lineHeight": "32px",
+                                "letterSpacing": "0em",
+                                "fontWeight": "600"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(78, 99, 86, 0.05);
+        }
+        
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.8s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .wave-path {
+            animation: wave 10s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        body {
+            /* Fallback background image using provided reference if needed, but styling mostly prefers solid colors */
+            background-color: theme('colors.background');
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- Main Content Canvas -->
+<main class="max-w-md mx-auto relative pt-12 px-container-padding">
+<!-- Header -->
+<header class="mb-section-margin text-center">
+<h1 class="font-headline-md text-headline-md text-primary">Thống kê</h1>
+</header>
+<!-- Tabs -->
+<div class="flex justify-center gap-stack-gap mb-section-margin">
+<button class="font-headline-sm text-headline-sm text-primary border-b-2 border-primary pb-1 px-2">Tuần</button>
+<button class="font-headline-sm text-headline-sm text-outline pb-1 px-2">Tháng</button>
+</div>
+<!-- Health Score Card (Bento Style) -->
+<section class="glass-panel rounded-xl p-glass-padding mb-section-margin flex flex-col items-center">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-4 w-full text-center">Health Score Tuần</h2>
+<div class="relative w-40 h-40 flex items-center justify-center">
+<svg class="w-full h-full" viewBox="0 0 100 100">
+<circle class="text-surface-variant stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-primary stroke-current progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-display-lg text-primary">75</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/100</span>
+</div>
+</div>
+<p class="mt-4 font-body-md text-body-md text-center text-on-surface-variant">Tuyệt vời! Bạn đang duy trì phong độ rất tốt.</p>
+</section>
+<!-- Chart Section -->
+<section class="glass-panel rounded-xl p-glass-padding mb-section-margin overflow-hidden relative">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-4">Thống kê hoàn thành</h2>
+<!-- Soft Wave Chart Placeholder -->
+<div class="h-32 w-full relative -mx-glass-padding">
+<svg class="absolute bottom-0 w-[200%] h-full" preserveAspectRatio="none" viewBox="0 0 1000 100">
+<path class="wave-path text-primary-container fill-current opacity-30" d="M0,50 Q125,0 250,50 T500,50 T750,50 T1000,50 L1000,100 L0,100 Z"></path>
+<path class="wave-path text-primary fill-current opacity-20" d="M0,70 Q125,20 250,70 T500,70 T750,70 T1000,70 L1000,100 L0,100 Z" style="animation-duration: 7s; animation-direction: reverse;"></path>
+</svg>
+</div>
+<div class="absolute bottom-glass-padding left-glass-padding right-glass-padding flex justify-between font-label-md text-label-md text-on-surface-variant">
+<span class="">T2</span><span class="">T3</span><span class="">T4</span><span class="">T5</span><span class="">T6</span><span class="">T7</span><span class="">CN</span>
+</div>
+</section>
+<!-- Incomplete Tasks List -->
+<section class="mb-section-margin">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-stack-gap">Chưa hoàn thành</h2>
+<div class="space-y-stack-gap">
+<!-- Task Item 1 -->
+<div class="glass-panel rounded-lg p-4 flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-outline flex-shrink-0 cursor-pointer"></div>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-surface">Đọc sách 30 phút</p>
+<p class="font-body-md text-body-md text-on-surface-variant">T2, T3</p>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="glass-panel rounded-lg p-4 flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-outline flex-shrink-0 cursor-pointer"></div>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-surface">Uống đủ nước</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Hôm nay</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-8 left-0 w-full z-50 flex justify-center md:hidden">
+<div class="floating pill-shaped mx-auto rounded-full w-[calc(100%-48px)] max-w-2xl bg-surface-container-low/80 dark:bg-inverse-surface/80 backdrop-blur-2xl border border-outline-variant/20 shadow-lg shadow-primary/15 flex justify-around p-2 items-center"><a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline px-6 py-2 hover:bg-primary-container/20 rounded-full active:scale-90 duration-200" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">task_alt</span><span class="text-label-md font-label-md mt-1">Nhiệm vụ</span></a><a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-on-secondary-fixed-variant text-on-secondary-container dark:text-secondary-fixed rounded-full px-6 py-2 hover:bg-primary-container/20 rounded-full active:scale-90 duration-200" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">insert_chart</span><span class="text-label-md font-label-md mt-1">Thống kê</span></a></div>
+</nav>
+<!-- Hidden reference to provided image context -->
+<div data-alt="A detailed view of a premium wellness app UI design showing a calm productivity dashboard with natural themes." style="display:none; background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLsmBbAMlXItIrcB3EqbY0xWEpmPgy6StNqLWu49K3mD7W6CVN976LCA5I2msZ3pPR72uQawF_DNBUn4RIELCcVre4Tfx5wOjNYcbkbNpLeRhS7dpWkAUHzdz1HscewGAyP6zDHyYN_qC1tYVV_P9AYLaKwA_jfzxhXpXj9pnF9bAJqAnVBPspOJu7ebEcEdd1Vc8AGvR2Fry9GsnfbUU1iTbSfjVEQNZ4711UtEvsUzSr9h0opVvRbJINvt')"></div>
+
+
+</body></html>

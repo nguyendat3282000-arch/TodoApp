@@ -47,6 +47,7 @@ import com.example.todoapp.ui.theme.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.material3.HorizontalDivider
 
 enum class HomeTab {
     TASKS,
@@ -83,10 +84,10 @@ fun HomeScreen(
                 FloatingActionButton(
                     onClick = onAddTask,
                     shape = PillShape,
-                    containerColor = Mint500,
+                    containerColor = Primary,
                     contentColor = Color.White,
                     elevation = FloatingActionButtonDefaults.elevation(8.dp),
-                    modifier = Modifier.padding(bottom = 60.dp) // Move up slightly to avoid overlapping floating bar
+                    modifier = Modifier.padding(bottom = 72.dp)
                 ) {
                     Icon(Icons.Rounded.Add, contentDescription = "Add task", modifier = Modifier.size(28.dp))
                 }
@@ -106,21 +107,28 @@ fun HomeScreen(
         ) {
             // Main Content Area
             Column(modifier = Modifier.fillMaxSize()) {
-                // Slim, premium custom header (removes large blank space at top)
+                // Glassmorphic top app bar matching Stitch design
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                                )
+                            )
+                        )
                         .statusBarsPadding()
-                        .padding(start = 20.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                        .padding(start = 20.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "TodoApp ✨",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 22.sp
+                        color = Primary,
                     )
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
@@ -289,20 +297,28 @@ fun HomeScreen(
                 }
             }
 
-            // ── Floating Pill Bottom Navigation Bar (More subtle and elegant) ──
+            // ── Floating Pill Bottom Navigation Bar — Stitch style ──
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
-                    .shadow(8.dp, RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), RoundedCornerShape(24.dp))
-                    .border(BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.15f)), RoundedCornerShape(24.dp))
-                    .width(220.dp)
-                    .height(46.dp)
-                    .clip(RoundedCornerShape(24.dp))
+                    .padding(bottom = 24.dp, start = 24.dp, end = 24.dp)
+                    .shadow(12.dp, FloatingNavShape)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.92f),
+                        FloatingNavShape
+                    )
+                    .border(
+                        BorderStroke(1.dp, OutlineVariant.copy(alpha = 0.25f)),
+                        FloatingNavShape
+                    )
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .clip(FloatingNavShape)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
@@ -405,7 +421,7 @@ fun TaskCard(
     onClick: () -> Unit = {},
 ) {
     val cardColor by animateColorAsState(
-        targetValue = if (task.isDone) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+        targetValue = if (task.isDone) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceContainer,
         animationSpec = tween(400),
         label = "card_color",
     )
@@ -436,7 +452,7 @@ fun TaskCard(
         shape = CardShape,
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (task.isDone) 0.dp else 2.dp,
+            defaultElevation = if (task.isDone) 0.dp else 1.dp,
         ),
     ) {
         Row(
@@ -455,7 +471,7 @@ fun TaskCard(
                     imageVector = if (task.isDone) Icons.Rounded.CheckCircle
                     else Icons.Rounded.RadioButtonUnchecked,
                     contentDescription = "Toggle done",
-                    tint = if (task.isDone) SuccessGreen else MaterialTheme.colorScheme.outline,
+                    tint = if (task.isDone) Primary else PrimaryContainer,
                     modifier = Modifier.size(28.dp),
                 )
             }
@@ -684,14 +700,14 @@ private fun DueDateChip(
     alarmSet: Boolean,
 ) {
     val bg = when {
-        isDone -> Neutral200
-        isOverdue -> Coral100
-        else -> Mint100
+        isDone    -> MaterialTheme.colorScheme.surfaceVariant
+        isOverdue -> MaterialTheme.colorScheme.errorContainer
+        else      -> MaterialTheme.colorScheme.secondaryContainer
     }
     val textColor = when {
-        isDone -> MaterialTheme.colorScheme.onSurfaceVariant
-        isOverdue -> Coral500
-        else -> Mint500
+        isDone    -> MaterialTheme.colorScheme.onSurfaceVariant
+        isOverdue -> MaterialTheme.colorScheme.error
+        else      -> MaterialTheme.colorScheme.onSecondaryContainer
     }
     val label = buildString {
         if (dueDate.isNotBlank()) append(formatDate(dueDate))
@@ -787,12 +803,12 @@ private fun NavigationTabItem(
     modifier: Modifier = Modifier
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (selected) Mint500.copy(alpha = 0.12f) else Color.Transparent,
+        targetValue = if (selected) SecondaryContainer else Color.Transparent,
         animationSpec = tween(300),
         label = "nav_item_bg"
     )
     val contentColor by animateColorAsState(
-        targetValue = if (selected) Mint500 else Color.Gray,
+        targetValue = if (selected) OnSecondaryContainer else OnSurfaceVariant,
         animationSpec = tween(300),
         label = "nav_item_content"
     )
@@ -891,7 +907,7 @@ private fun TaskDetailsContent(
             Button(
                 onClick = { onEdit(task.id) },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Mint500)
+                colors = ButtonDefaults.buttonColors(containerColor = Primary)
             ) {
                 Icon(Icons.Rounded.Edit, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
@@ -906,12 +922,12 @@ private fun TaskDetailsContent(
 private fun ChipInfo(emoji: String, text: String) {
     Row(
         modifier = Modifier
-            .background(Mint100, PillShape)
+            .background(SecondaryContainer, PillShape)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(emoji)
-        Text(text, style = MaterialTheme.typography.labelMedium, color = Mint500)
+        Text(text, style = MaterialTheme.typography.labelMedium, color = Secondary)
     }
 }

@@ -10,9 +10,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
-import com.example.todoapp.ui.theme.Mint100
-import com.example.todoapp.ui.theme.Mint500
+import com.example.todoapp.ui.theme.Primary
 import com.example.todoapp.ui.theme.TextFieldShape
 
 /**
@@ -65,12 +65,12 @@ fun RoundedTextField(
         keyboardActions      = keyboardActions,
         shape                = TextFieldShape,
         colors               = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor      = Mint500,
-            unfocusedBorderColor    = MaterialTheme.colorScheme.outline,
-            focusedLabelColor       = Mint500,
-            cursorColor             = Mint500,
-            focusedContainerColor   = Mint100.copy(alpha = 0.3f),
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            focusedBorderColor      = Primary,
+            unfocusedBorderColor    = MaterialTheme.colorScheme.outlineVariant,
+            focusedLabelColor       = Primary,
+            cursorColor             = Primary,
+            focusedContainerColor   = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
         ),
         modifier = modifier.fillMaxWidth(),
     )

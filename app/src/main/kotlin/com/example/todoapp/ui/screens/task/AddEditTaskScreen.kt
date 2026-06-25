@@ -144,8 +144,8 @@ fun AddEditTaskScreen(
                     onClick = { taskType = TaskType.DAILY },
                     label = { Text("Nhiệm vụ trong ngày") },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Mint100,
-                        selectedLabelColor = Mint500
+                        selectedContainerColor = SecondaryContainer,
+                        selectedLabelColor = Secondary
                     )
                 )
                 FilterChip(
@@ -153,8 +153,8 @@ fun AddEditTaskScreen(
                     onClick = { taskType = TaskType.HABIT },
                     label = { Text("Nhiệm vụ dài hạn") },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Mint100,
-                        selectedLabelColor = Mint500
+                        selectedContainerColor = SecondaryContainer,
+                        selectedLabelColor = Secondary
                     )
                 )
             }
@@ -167,7 +167,7 @@ fun AddEditTaskScreen(
                 value = title,
                 onValueChange = { title = it },
                 label = "Bạn cần thực hiện việc gì?",
-                leadingIcon = { Icon(Icons.Rounded.Title, null, tint = Mint500) },
+                leadingIcon = { Icon(Icons.Rounded.Title, null, tint = Primary) },
                 enabled = !isSaving,
             )
 
@@ -265,18 +265,18 @@ fun AddEditTaskScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Thêm ghi chú cụ thể (không bắt buộc)") },
-                leadingIcon = { Icon(Icons.Rounded.Description, null, tint = Mint500) },
+                leadingIcon = { Icon(Icons.Rounded.Description, null, tint = Primary) },
                 minLines = 3,
                 maxLines = 6,
                 enabled = !isSaving,
-                shape = TextFieldShape,
+                shape = TextAreaShape,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Mint500,
+                    focusedBorderColor = Primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedLabelColor = Mint500,
-                    cursorColor = Mint500,
-                    focusedContainerColor = Mint100.copy(alpha = 0.3f),
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    focusedLabelColor = Primary,
+                    cursorColor = Primary,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -312,7 +312,7 @@ fun AddEditTaskScreen(
                 DateTimePickerField(
                     value = dueDate,
                     placeholder = "Chọn ngày thực hiện",
-                    icon = { Icon(Icons.Rounded.CalendarMonth, null, tint = Mint500) },
+                    icon = { Icon(Icons.Rounded.CalendarMonth, null, tint = Primary) },
                     onClick = { showDatePicker = true },
                 )
 
@@ -347,7 +347,7 @@ fun AddEditTaskScreen(
             DateTimePickerField(
                 value = dueTime,
                 placeholder = "Chọn giờ",
-                icon = { Icon(Icons.Rounded.AccessTime, null, tint = Mint500) },
+                icon = { Icon(Icons.Rounded.AccessTime, null, tint = Primary) },
                 onClick = { showTimePicker = true },
             )
 
@@ -418,7 +418,7 @@ fun AddEditTaskScreen(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = PillShape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Mint500,
+                    containerColor = Primary,
                     contentColor = Color.White,
                 ),
                 enabled = !isSaving && title.isNotBlank() && !(taskType == TaskType.HABIT && frequencyType == FrequencyType.FIXED && fixedDays.isEmpty()),
@@ -540,12 +540,12 @@ private fun DateTimePickerField(
                 )
             },
             leadingIcon = icon,
-            shape = TextFieldShape,
+            shape = PillShape,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Mint500,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = Mint100.copy(alpha = 0.3f),
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
             ),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -564,7 +564,7 @@ private fun AlarmToggleRow(checked: Boolean, onChecked: (Boolean) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (checked) Mint100 else MaterialTheme.colorScheme.surfaceVariant,
+                color = if (checked) SecondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                 shape = MaterialTheme.shapes.large,
             )
             .padding(horizontal = 20.dp, vertical = 14.dp),

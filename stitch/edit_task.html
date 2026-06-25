@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Task</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Quicksand:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2b322f",
+                        "primary-container": "#8fa596",
+                        "primary": "#4e6356",
+                        "surface-container-highest": "#dde4df",
+                        "surface-tint": "#4e6356",
+                        "inverse-primary": "#b5ccbc",
+                        "on-background": "#161d1a",
+                        "surface-container-low": "#eef5f0",
+                        "on-secondary-container": "#4f6a5b",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#6e5b49",
+                        "primary-fixed-dim": "#b5ccbc",
+                        "on-secondary-fixed-variant": "#324c3e",
+                        "on-tertiary-fixed": "#26190b",
+                        "outline": "#737873",
+                        "on-primary-fixed-variant": "#374b3f",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#b0cdbb",
+                        "secondary-container": "#ccead6",
+                        "surface-dim": "#d5dcd7",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e3eae5",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#f8dec6",
+                        "surface": "#f4fbf6",
+                        "surface-bright": "#f4fbf6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#554432",
+                        "on-surface": "#161d1a",
+                        "on-primary-fixed": "#0c1f15",
+                        "outline-variant": "#c2c8c2",
+                        "background": "#f4fbf6",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#dde4df",
+                        "inverse-on-surface": "#ebf2ed",
+                        "secondary-fixed": "#ccead6",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#433423",
+                        "on-surface-variant": "#424844",
+                        "secondary": "#496455",
+                        "tertiary-fixed-dim": "#dbc2ac",
+                        "tertiary-container": "#b29c87",
+                        "surface-container": "#e9f0eb",
+                        "primary-fixed": "#d1e8d8",
+                        "on-secondary-fixed": "#062014",
+                        "on-primary-container": "#273b2f",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "32px",
+                        "stack-gap": "16px",
+                        "container-padding": "24px",
+                        "base": "8px",
+                        "glass-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Quicksand"],
+                        "headline-sm": ["Quicksand"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Quicksand"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "0em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px -10px rgba(78, 99, 86, 0.15);
+        }
+        .input-pill {
+            background: #ffffff;
+            border: 1px solid rgba(138, 165, 150, 0.2);
+            border-radius: 9999px;
+            padding: 12px 20px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .input-pill:focus-within {
+            border-color: #8fa596;
+            box-shadow: 0 0 0 4px rgba(143, 165, 150, 0.1);
+        }
+        .input-field {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            color: #161d1a;
+        }
+        .input-field::placeholder {
+            color: #737873;
+        }
+        
+        /* Textarea specific pill style */
+        .textarea-pill {
+            border-radius: 1.5rem;
+            padding: 16px 20px;
+        }
+        
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #8fa596;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #8fa596;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen font-body-lg antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding py-4 bg-surface/70 backdrop-blur-xl shadow-sm shadow-primary/5">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high/50 transition-colors text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-primary">Sửa nhiệm vụ</h1>
+<div class="w-10 h-10"></div> <!-- Spacer for alignment -->
+</nav>
+<!-- Main Content Area -->
+<main class="pt-[100px] px-container-padding pb-section-margin max-w-md mx-auto">
+<!-- Large Glassmorphic Central Card -->
+<div class="glass-card rounded-[2rem] p-glass-padding mt-8 relative">
+<!-- Sprout Mascot Avatar -->
+<div class="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 rounded-full bg-surface-container-low border-4 border-surface shadow-lg shadow-primary/10 flex items-center justify-center overflow-hidden">
+<img alt="Buddy Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLs9uaBHJaYMCL5-3kWQo78cxzjpa35G5FfosQRPLRyO7MEAh6SyCHAi0hTc56SaXlrSpfMQSlZD5tg0jU8RgxSoMAPRe1-M8JqnwOdEm9i7RD2mG8rNSgmoHKRcAaB6oUpEcCxwfRLx9jtVzZzMy7kn8uO6aIuEQZI7yB8ouLgZF5IawM0B5sgBylKEjWlPoESbU6GxbVZuPiBY-fnTerx-ou0MQsNTd8HpFfgEBf7-pCOeBFcnE8gqMzBk"/>
+</div>
+<!-- Form Content -->
+<div class="mt-12 space-y-stack-gap">
+<!-- Tiêu đề Input -->
+<div class="space-y-2">
+<label class="text-label-md font-label-md text-primary ml-4">Tiêu đề</label>
+<div class="input-pill flex items-center gap-3">
+<span class="material-symbols-outlined text-outline">title</span>
+<input class="input-field font-body-md text-body-md" placeholder="Nhập tiêu đề..." type="text" value="Tưới cây"/>
+</div>
+</div>
+<!-- Mô tả Input -->
+<div class="space-y-2">
+<label class="text-label-md font-label-md text-primary ml-4">Mô tả</label>
+<div class="input-pill textarea-pill">
+<textarea class="input-field font-body-md text-body-md resize-none h-24" placeholder="Nhập mô tả...">Tưới 3 chậu cây ở ban công.</textarea>
+</div>
+</div>
+<!-- Grid for Date & Time -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Ngày thực hiện Input -->
+<div class="space-y-2">
+<label class="text-label-md font-label-md text-primary ml-4">Ngày thực hiện</label>
+<div class="input-pill flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-sm">calendar_month</span>
+<input class="input-field font-body-md text-body-md" type="text" value="28/10/2023"/>
+</div>
+</div>
+<!-- Thời gian Input -->
+<div class="space-y-2">
+<label class="text-label-md font-label-md text-primary ml-4">Thời gian</label>
+<div class="input-pill flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-sm">schedule</span>
+<input class="input-field font-body-md text-body-md" type="text" value="17:00"/>
+</div>
+</div>
+</div>
+<!-- Hẹn giờ nhắc nhở Toggle -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low/50 rounded-2xl border border-surface-container-highest mt-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Hẹn giờ nhắc nhở</span>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10 translate-x-6 border-primary-container" id="toggle" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-primary-container cursor-pointer transition-colors duration-300 ease-in-out" for="toggle"></label>
+</div>
+</div>
+</div>
+<!-- Primary Action Button -->
+<div class="mt-8">
+<button class="w-full bg-gradient-to-b from-primary-container to-primary text-on-primary font-headline-sm text-headline-sm py-4 rounded-full shadow-lg shadow-primary/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">save</span>
+                    Lưu thay đổi
+                </button>
+</div>
+</div>
+</main>
+<script>
+        // Simple toggle interaction logic for demonstration
+        const toggleCheckbox = document.getElementById('toggle');
+        const toggleLabel = document.querySelector('.toggle-label');
+
+        toggleCheckbox.addEventListener('change', function() {
+            if(this.checked) {
+                this.classList.add('translate-x-6', 'border-primary-container');
+                this.classList.remove('translate-x-0', 'border-outline-variant');
+                toggleLabel.classList.add('bg-primary-container');
+                toggleLabel.classList.remove('bg-surface-variant');
+            } else {
+                this.classList.remove('translate-x-6', 'border-primary-container');
+                this.classList.add('translate-x-0', 'border-outline-variant');
+                toggleLabel.classList.remove('bg-primary-container');
+                toggleLabel.classList.add('bg-surface-variant');
+            }
+        });
+        
+        // Initialize toggle visual state if needed based on default checked status
+        if(!toggleCheckbox.checked) {
+             toggleCheckbox.classList.remove('translate-x-6', 'border-primary-container');
+             toggleCheckbox.classList.add('translate-x-0', 'border-outline-variant');
+             toggleLabel.classList.remove('bg-primary-container');
+             toggleLabel.classList.add('bg-surface-variant');
+        }
+    </script>
+</body></html>

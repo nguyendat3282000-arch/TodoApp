@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App launcher icon background — sage green matching PrimaryContainer -->
+    <color name="ic_launcher_background">#8FA596</color>
 
     <style name="Theme.TodoApp" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

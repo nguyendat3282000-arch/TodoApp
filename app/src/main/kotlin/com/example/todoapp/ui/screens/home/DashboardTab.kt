@@ -40,8 +40,10 @@ import com.example.todoapp.domain.model.Task
 import com.example.todoapp.domain.model.TaskType
 import com.example.todoapp.domain.model.UserStats
 import com.example.todoapp.domain.model.TaskLog
-import com.example.todoapp.ui.theme.Mint100
-import com.example.todoapp.ui.theme.Mint500
+import com.example.todoapp.ui.theme.Primary
+import com.example.todoapp.ui.theme.Secondary
+import com.example.todoapp.ui.theme.SecondaryContainer
+import com.example.todoapp.ui.theme.SurfaceContainerLowest
 import com.example.todoapp.ui.theme.SuccessGreen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -154,11 +156,11 @@ fun DashboardTabContent(
         TabRow(
             selectedTabIndex = periodFilter.ordinal,
             containerColor = Color.Transparent,
-            contentColor = Mint500,
+            contentColor = Primary,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[periodFilter.ordinal]),
-                    color = Mint500
+                    color = Primary
                 )
             }
         ) {
@@ -214,7 +216,7 @@ fun DashboardTabContent(
                                         .padding(horizontal = 2.dp)
                                         .clickable { selectedDate = date },
                                     colors = CardDefaults.cardColors(
-                                        containerColor = if (isSelected) Mint500 else Color.Transparent
+                                        containerColor = if (isSelected) Primary else Color.Transparent
                                     ),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
@@ -342,9 +344,9 @@ fun DashboardTabContent(
 
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp)) {
                             CircularProgressIndicator(
-                                progress = score / 100f,
+                                progress = { score / 100f },
                                 modifier = Modifier.fillMaxSize(),
-                                color = Mint500,
+                                color = Primary,
                                 strokeWidth = 12.dp,
                                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
                                 strokeCap = StrokeCap.Round
@@ -389,7 +391,7 @@ fun DashboardTabContent(
                         }
 
                         val maxCount = maxOf(1, last7Days.maxOf { it.second })
-                        val chartColor = Mint500
+                        val chartColor = Primary
                         val textMeasurer = rememberTextMeasurer()
 
                         Canvas(
@@ -517,7 +519,7 @@ fun DashboardTabContent(
                         Text(
                             text = "$monthlyCompletedCount",
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 48.sp),
-                            color = Mint500,
+                            color = Primary,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -533,9 +535,9 @@ fun DashboardTabContent(
                         val progress = dayOfMonth.toFloat() / daysInMonth
 
                         LinearProgressIndicator(
-                            progress = progress,
+                            progress = { progress },
                             modifier = Modifier.fillMaxWidth().height(8.dp),
-                            color = Mint500,
+                            color = Primary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant,
                             strokeCap = StrokeCap.Round
                         )
@@ -596,7 +598,7 @@ fun TaskSimpleRow(task: Task, isDone: Boolean) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isDone) SuccessGreen.copy(alpha = 0.05f) else MaterialTheme.colorScheme.surface
+            containerColor = if (isDone) SuccessGreen.copy(alpha = 0.05f) else SurfaceContainerLowest
         )
     ) {
         Row(

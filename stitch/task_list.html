@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buddy Task List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&amp;family=Quicksand:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2b322f",
+                        "primary-container": "#8fa596",
+                        "primary": "#4e6356",
+                        "surface-container-highest": "#dde4df",
+                        "surface-tint": "#4e6356",
+                        "inverse-primary": "#b5ccbc",
+                        "on-background": "#161d1a",
+                        "surface-container-low": "#eef5f0",
+                        "on-secondary-container": "#4f6a5b",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#6e5b49",
+                        "primary-fixed-dim": "#b5ccbc",
+                        "on-secondary-fixed-variant": "#324c3e",
+                        "on-tertiary-fixed": "#26190b",
+                        "outline": "#737873",
+                        "on-primary-fixed-variant": "#374b3f",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#b0cdbb",
+                        "secondary-container": "#ccead6",
+                        "surface-dim": "#d5dcd7",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e3eae5",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#f8dec6",
+                        "surface": "#f4fbf6",
+                        "surface-bright": "#f4fbf6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#554432",
+                        "on-surface": "#161d1a",
+                        "on-primary-fixed": "#0c1f15",
+                        "outline-variant": "#c2c8c2",
+                        "background": "#f4fbf6",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#dde4df",
+                        "inverse-on-surface": "#ebf2ed",
+                        "secondary-fixed": "#ccead6",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#433423",
+                        "on-surface-variant": "#424844",
+                        "secondary": "#496455",
+                        "tertiary-fixed-dim": "#dbc2ac",
+                        "tertiary-container": "#b29c87",
+                        "surface-container": "#e9f0eb",
+                        "primary-fixed": "#d1e8d8",
+                        "on-secondary-fixed": "#062014",
+                        "on-primary-container": "#273b2f",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "32px",
+                        "stack-gap": "16px",
+                        "container-padding": "24px",
+                        "base": "8px",
+                        "glass-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Quicksand"],
+                        "headline-sm": ["Quicksand"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Quicksand"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "0em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(78, 99, 86, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding py-4 bg-surface/70 dark:bg-surface-dim/70 backdrop-blur-xl border-b border-surface-variant/30 shadow-sm shadow-primary/5 hover:bg-surface-container-high/50 transition-colors">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-on-primary-container">TodoApp ✨</h1>
+<button aria-label="Settings" class="text-on-surface-variant active:scale-95 transition-transform">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-[80px] pb-[100px] px-container-padding max-w-2xl mx-auto flex flex-col gap-stack-gap">
+<!-- Background Asset from prompt, placed subtly -->
+<div class="absolute inset-0 z-[-1] opacity-5 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLt7uHXiHqOw3tMp96PmrxOX08MK7Pu5DctGKrT8p30KrG_-xYfOHWqkJZdwyCH8fxcRTysUz2JZLsrlgB09Gmpj3-zm7lSFELbNTA59iUz5GIH6T9k8NaEMcQkInmzNxt45mKCrJoKgZQwUHR8MKUzblLgQQbzhXQJuOogD0N8p8GoJlkr9hsRfnFNZJhdb7bID4qn4TlRYAcfbPb6kFrqIcdNbqlCTP_5RDzpsRpN3QQEBiUU862zfidSQ'); background-size: cover; background-position: center;"></div>
+<!-- Greeting Section -->
+<section class="mt-section-margin">
+<h2 class="text-headline-sm font-headline-sm text-primary mb-2">Chào buổi tối!</h2>
+<div class="glass-panel p-glass-padding rounded-xl relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[100px]">spa</span>
+</div>
+<p class="text-body-md italic text-on-surface-variant relative z-10 font-medium">"Kỷ luật là cầu nối giữa mục tiêu và thành tựu."</p>
+<p class="text-label-md text-primary mt-2 relative z-10">— Jim Rohn</p>
+</div>
+</section>
+<!-- Tabs -->
+<div class="flex gap-4 mt-4 border-b border-surface-variant/50 pb-2">
+<button class="text-label-md font-label-md text-primary font-bold border-b-2 border-primary px-2 pb-1">Hôm nay</button>
+<button class="text-label-md font-label-md text-on-surface-variant px-2 pb-1 opacity-60">Sắp tới</button>
+</div>
+<!-- Task List -->
+<section class="flex flex-col gap-3 mt-4">
+<!-- Task Item 1 -->
+<div class="glass-panel rounded-lg p-4 flex items-center gap-4 transition-transform active:scale-[0.98]">
+<button class="w-6 h-6 rounded-full border-2 border-primary-container flex items-center justify-center text-transparent hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</button>
+<div class="flex-1">
+<h3 class="text-body-lg font-body-lg text-primary">gergerg</h3>
+</div>
+</div>
+<!-- Empty State hint -->
+<div class="mt-8 text-center opacity-50">
+<span class="material-symbols-outlined text-4xl mb-2 text-primary-container">psychiatry</span>
+<p class="text-label-md">Không còn nhiệm vụ nào cho hôm nay.</p>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-[120px] right-container-padding w-14 h-14 bg-gradient-to-b from-primary to-secondary text-on-primary rounded-full shadow-[0_8px_24px_rgba(78,99,86,0.3)] flex items-center justify-center active:scale-95 transition-transform z-40 hover:shadow-[0_12px_28px_rgba(78,99,86,0.4)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-8 left-0 w-full z-50 flex justify-center md:hidden">
+<div class="floating pill-shaped mx-auto rounded-full w-[calc(100%-48px)] max-w-2xl bg-surface-container-low/80 dark:bg-inverse-surface/80 backdrop-blur-2xl border border-outline-variant/20 shadow-lg shadow-primary/15 flex justify-around p-2 items-center">
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-on-secondary-fixed-variant text-on-secondary-container dark:text-secondary-fixed rounded-full px-6 py-2 active:scale-90 duration-200 hover:bg-primary-container/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+<span class="text-label-md font-label-md mt-1">Nhiệm vụ</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline px-6 py-2 hover:bg-primary-container/20 rounded-full active:scale-90 duration-200">
+<span class="material-symbols-outlined">insert_chart</span>
+<span class="text-label-md font-label-md mt-1">Thống kê</span>
+</button>
+</div>
+</nav>
+
+
+</body></html>

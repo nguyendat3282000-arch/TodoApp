@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2b322f",
+                        "primary-container": "#8fa596",
+                        "primary": "#4e6356",
+                        "surface-container-highest": "#dde4df",
+                        "surface-tint": "#4e6356",
+                        "inverse-primary": "#b5ccbc",
+                        "on-background": "#161d1a",
+                        "surface-container-low": "#eef5f0",
+                        "on-secondary-container": "#4f6a5b",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#6e5b49",
+                        "primary-fixed-dim": "#b5ccbc",
+                        "on-secondary-fixed-variant": "#324c3e",
+                        "on-tertiary-fixed": "#26190b",
+                        "outline": "#737873",
+                        "on-primary-fixed-variant": "#374b3f",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#b0cdbb",
+                        "secondary-container": "#ccead6",
+                        "surface-dim": "#d5dcd7",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e3eae5",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#f8dec6",
+                        "surface": "#f4fbf6",
+                        "surface-bright": "#f4fbf6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#554432",
+                        "on-surface": "#161d1a",
+                        "on-primary-fixed": "#0c1f15",
+                        "outline-variant": "#c2c8c2",
+                        "background": "#f4fbf6",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#dde4df",
+                        "inverse-on-surface": "#ebf2ed",
+                        "secondary-fixed": "#ccead6",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#433423",
+                        "on-surface-variant": "#424844",
+                        "secondary": "#496455",
+                        "tertiary-fixed-dim": "#dbc2ac",
+                        "tertiary-container": "#b29c87",
+                        "surface-container": "#e9f0eb",
+                        "primary-fixed": "#d1e8d8",
+                        "on-secondary-fixed": "#062014",
+                        "on-primary-container": "#273b2f",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "32px",
+                        "stack-gap": "16px",
+                        "container-padding": "24px",
+                        "base": "8px",
+                        "glass-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Quicksand"],
+                        "headline-sm": ["Quicksand"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Quicksand"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "0em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass {
+                @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(78,99,86,0.05)];
+            }
+        }
+        
+        /* Custom Checkbox/Toggle Styles */
+        .toggle-checkbox:checked {
+            @apply right-0 border-primary bg-primary;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            @apply bg-primary-container/30;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-lg">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding py-4 bg-surface/70 backdrop-blur-xl border-b border-surface-variant/30 shadow-sm shadow-primary/5 transition-all duration-300">
+<div class="flex items-center gap-2">
+<h1 class="text-headline-md font-headline-md font-bold text-primary">Cài đặt hệ thống ⚙️</h1>
+</div>
+<button class="text-on-surface-variant hover:bg-surface-container-high/50 p-2 rounded-full transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">settings</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-[88px] pb-section-margin px-container-padding max-w-2xl mx-auto flex flex-col gap-stack-gap">
+<!-- Image Reference (Hidden physically but present for requirement) -->
+<div class="hidden" data-alt="Hidden reference image of settings screen" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLvzzpYgVpr_F5TgozWHtSpSSP5hIaHl-QbZCAfwzCw0t3DzRJzC-WnkmpeJibCHBr6IR4XVUraIhWaisbQAE5JDBLBzSxzwdRJBCqWEy83t02t4BwKnsxjEdAbTjnZwk2gLl7hLv-6bwffHAO9H_dobdE--VaEA_ePQIwOu62Wr_KXqXt_AjD6o94X7OrgIKeV9N81BTkIFAk5OPCdsUBqfAW0Bnd33QOGmZDgCGW7GoQs1UJco4uIo5Cqa')"></div>
+<!-- Account Settings Card -->
+<section class="glass rounded-lg p-glass-padding flex flex-col gap-4 mt-8">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary text-2xl">account_circle</span>
+<h2 class="text-headline-sm font-headline-sm text-primary">Tài khoản</h2>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-body-lg font-body-lg text-on-surface">Email</span>
+<span class="text-body-md font-body-md text-on-surface-variant">user@example.com</span>
+</div>
+</div>
+<hr class="border-outline-variant/30 my-2"/>
+<button class="w-full py-3 px-4 rounded-full bg-error-container/50 text-on-error-container text-body-lg font-body-lg font-semibold hover:bg-error-container/80 transition-colors flex items-center justify-center gap-2 mt-2">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                Đăng xuất
+            </button>
+</section>
+<!-- Personalization & Reminders Card -->
+<section class="glass rounded-lg p-glass-padding flex flex-col gap-6 mt-4">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary text-2xl">notifications_active</span>
+<h2 class="text-headline-sm font-headline-sm text-primary">Nhắc nhở &amp; Cá nhân hóa</h2>
+</div>
+<!-- Daily Reminder Toggle -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-body-lg font-body-lg text-on-surface">Nhắc nhở hàng ngày</span>
+<span class="text-body-md font-body-md text-on-surface-variant">Nhận thông báo để hoàn thành nhiệm vụ</span>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-surface-variant appearance-none cursor-pointer transition-transform duration-200 ease-in-out z-10 top-0 checked:translate-x-full checked:border-primary checked:bg-primary" id="daily-reminder" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer transition-colors duration-200 ease-in-out" for="daily-reminder"></label>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<!-- Reminder Time Picker -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-body-lg font-body-lg text-on-surface">Thời gian nhắc nhở</span>
+</div>
+<input class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-primary font-semibold text-body-lg font-body-lg focus:ring-primary focus:border-primary outline-none" type="time" value="08:00"/>
+</div>
+<hr class="border-outline-variant/30"/>
+<!-- Dark Mode Toggle (Placeholder) -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-body-lg font-body-lg text-on-surface">Chế độ tối</span>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-surface-variant appearance-none cursor-pointer transition-transform duration-200 ease-in-out z-10 top-0 checked:translate-x-full checked:border-primary checked:bg-primary" id="dark-mode" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer transition-colors duration-200 ease-in-out" for="dark-mode"></label>
+</div>
+</div>
+</section>
+<!-- Data & Score Card -->
+<section class="glass rounded-lg p-glass-padding flex flex-col gap-4 mt-4 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary text-2xl">monitoring</span>
+<h2 class="text-headline-sm font-headline-sm text-primary">Dữ liệu &amp; Điểm số</h2>
+</div>
+<div class="flex items-center justify-between py-2 cursor-pointer hover:bg-surface-container-lowest/50 rounded-lg px-2 -mx-2 transition-colors">
+<span class="text-body-lg font-body-lg text-on-surface">Xuất dữ liệu</span>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+<hr class="border-outline-variant/30"/>
+<div class="flex items-center justify-between py-2 cursor-pointer hover:bg-surface-container-lowest/50 rounded-lg px-2 -mx-2 transition-colors">
+<span class="text-body-lg font-body-lg text-error">Xóa toàn bộ dữ liệu</span>
+<span class="material-symbols-outlined text-error">delete_forever</span>
+</div>
+</section>
+</main>
+<script>
+        // Simple micro-interaction for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.98)';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'scale(1)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

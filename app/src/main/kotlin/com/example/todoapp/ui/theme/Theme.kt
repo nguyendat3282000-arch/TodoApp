@@ -16,38 +16,44 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  Material 3 Color Schemes
+//  Material 3 Color Schemes — Modern Buddy (Stitch design)
 // ══════════════════════════════════════════════════════════════════════════════
 
 private val LightColorScheme = lightColorScheme(
-    primary            = LightPrimary,
-    onPrimary          = LightOnPrimary,
-    primaryContainer   = LightPrimaryContainer,
-    onPrimaryContainer = LightOnPrimaryContainer,
+    primary            = Primary,
+    onPrimary          = OnPrimary,
+    primaryContainer   = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
 
-    secondary            = LightSecondary,
-    onSecondary          = LightOnSecondary,
-    secondaryContainer   = LightSecondaryContainer,
-    onSecondaryContainer = LightOnSecondaryContainer,
+    secondary            = Secondary,
+    onSecondary          = OnSecondary,
+    secondaryContainer   = SecondaryContainer,
+    onSecondaryContainer = OnSecondaryContainer,
 
-    tertiary            = LightTertiary,
-    onTertiary          = LightOnTertiary,
-    tertiaryContainer   = LightTertiaryContainer,
-    onTertiaryContainer = LightOnTertiaryContainer,
+    tertiary            = Tertiary,
+    onTertiary          = OnTertiary,
+    tertiaryContainer   = TertiaryContainer,
+    onTertiaryContainer = OnTertiaryContainer,
 
-    background   = LightBackground,
-    onBackground = LightOnBackground,
+    background   = Background,
+    onBackground = OnBackground,
 
-    surface          = LightSurface,
-    onSurface        = LightOnSurface,
-    surfaceVariant   = LightSurfaceVariant,
-    onSurfaceVariant = LightOnSurfaceVariant,
+    surface          = Surface,
+    onSurface        = OnSurface,
+    surfaceVariant   = SurfaceVariant,
+    onSurfaceVariant = OnSurfaceVariant,
 
-    outline        = LightOutline,
-    outlineVariant = LightOutlineVariant,
+    outline        = Outline,
+    outlineVariant = OutlineVariant,
 
-    error   = LightError,
-    onError = LightOnError,
+    error            = Error,
+    onError          = OnError,
+    errorContainer   = ErrorContainer,
+    onErrorContainer = OnErrorContainer,
+
+    inverseSurface   = InverseSurface,
+    inverseOnSurface = InverseOnSurface,
+    inversePrimary   = InversePrimary,
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -79,6 +85,8 @@ private val DarkColorScheme = darkColorScheme(
 
     error   = DarkError,
     onError = DarkOnError,
+    errorContainer   = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer,
 )
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -86,18 +94,16 @@ private val DarkColorScheme = darkColorScheme(
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * The root theme for the Todo app.
+ * The root theme for the TodoApp — "Modern Buddy" style.
  *
- * @param darkTheme         Follow system dark-mode setting by default.
- * @param dynamicColor      Use Android 12+ dynamic color (Material You).
- *                          When true, overrides the custom pastel palette
- *                          on API 31+ devices. Set false to always use the
- *                          brand colors.
+ * @param darkTheme    Follow system dark-mode setting by default.
+ * @param dynamicColor Use Android 12+ dynamic color (Material You).
+ *                     Set false to always use the brand green palette.
  */
 @Composable
 fun TodoTheme(
     darkTheme: Boolean    = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,          // Keep false to enforce pastel brand
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -110,7 +116,7 @@ fun TodoTheme(
         else      -> LightColorScheme
     }
 
-    // ── Status bar color  ────────────────────────────────────────────────────
+    // Status bar
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

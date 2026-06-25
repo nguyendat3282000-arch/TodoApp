@@ -3,6 +3,10 @@ package com.example.todoapp.ui.screens.auth
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,7 +39,7 @@ import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +59,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -68,26 +74,21 @@ import androidx.compose.ui.unit.sp
 import com.example.todoapp.presentation.auth.AuthUiState
 import com.example.todoapp.presentation.auth.AuthViewModel
 import com.example.todoapp.ui.components.RoundedTextField
-import com.example.todoapp.ui.theme.BabyBlue200
-import com.example.todoapp.ui.theme.Coral100
-import com.example.todoapp.ui.theme.Coral500
-import com.example.todoapp.ui.theme.Mint100
-import com.example.todoapp.ui.theme.Mint500
+import com.example.todoapp.ui.theme.Background
+import com.example.todoapp.ui.theme.CardShape
+import com.example.todoapp.ui.theme.Outline
 import com.example.todoapp.ui.theme.PillShape
+import com.example.todoapp.ui.theme.Primary
+import com.example.todoapp.ui.theme.PrimaryContainer
+import com.example.todoapp.ui.theme.PrimaryFixed
+import com.example.todoapp.ui.theme.SurfaceContainerLow
+import com.example.todoapp.ui.theme.TertiaryFixedDim
 import kotlinx.coroutines.launch
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  AuthScreen
+//  AuthScreen — Modern Buddy glassmorphic login
 // ══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Single entry-point for both Login and Register flows.
- * Toggles between modes with an animated content swap.
- *
- * @param viewModel      Provided by the NavGraph via viewModel().
- * @param onAuthSuccess  Called when the user is fully authenticated.
- * @param onGoogleSignIn Called to trigger the Credential Manager flow in MainActivity.
- */
 @Composable
 fun AuthScreen(
     viewModel: AuthViewModel,
@@ -118,49 +119,63 @@ fun AuthScreen(
         containerColor = Color.Transparent,
     ) { innerPadding ->
 
+        // ── Mint gradient background ───────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Mint100, BabyBlue200, Coral100),
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Background,
+                            SurfaceContainerLow,
+                            PrimaryFixed,
+                        ),
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end   = androidx.compose.ui.geometry.Offset(800f, 1600f),
                     )
                 )
                 .padding(innerPadding),
         ) {
+
+            // ── Floating decorative stars ──────────────────────────────────────
+            FloatingStars()
+
+            // ── Main scroll content ────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .imePadding()
-                    .padding(horizontal = 28.dp, vertical = 48.dp),
+                    .padding(horizontal = 24.dp, vertical = 48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                // ── Hero ──────────────────────────────────────────────────────
-                Text(text = "✅", fontSize = 64.sp)
+
+                // ── App header ─────────────────────────────────────────────────
+                Text(text = "🌱", fontSize = 64.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text  = "TodoApp",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = Mint500,
+                    text  = "TodoApp ✨",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = Primary,
                 )
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    text      = "Stay cute, stay organized 🌸",
+                    text      = "Chào mừng bạn quay trở lại khu vườn công việc!",
                     style     = MaterialTheme.typography.bodyMedium,
                     color     = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
 
-                Spacer(Modifier.height(36.dp))
+                Spacer(Modifier.height(32.dp))
 
-                // ── Form card ─────────────────────────────────────────────────
+                // ── Glass card form ────────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clip(CardShape)
                         .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                            shape = MaterialTheme.shapes.extraLarge,
+                            color = Color.White.copy(alpha = 0.72f),
                         )
                         .padding(24.dp),
                 ) {
@@ -180,7 +195,55 @@ fun AuthScreen(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  AuthForm — toggleable Login / Register
+//  Floating stars decoration
+// ══════════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun FloatingStars() {
+    val inf = rememberInfiniteTransition(label = "stars")
+    val offset1 by inf.animateFloat(
+        initialValue = 0f,
+        targetValue  = -10f,
+        animationSpec = infiniteRepeatable(tween(4000), RepeatMode.Reverse),
+        label = "star1",
+    )
+    val offset2 by inf.animateFloat(
+        initialValue = 0f,
+        targetValue  = -10f,
+        animationSpec = infiniteRepeatable(tween(5000), RepeatMode.Reverse),
+        label = "star2",
+    )
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(
+            "⭐", fontSize = 28.sp,
+            modifier = Modifier
+                .offset(x = 48.dp, y = (120 + offset1).dp)
+                .align(Alignment.TopStart),
+        )
+        Text(
+            "✨", fontSize = 20.sp,
+            modifier = Modifier
+                .offset(x = (-40).dp, y = (180 + offset2).dp)
+                .align(Alignment.TopEnd),
+        )
+        Text(
+            "⭐", fontSize = 24.sp,
+            modifier = Modifier
+                .offset(x = 24.dp, y = (-80 + offset1).dp)
+                .align(Alignment.BottomStart),
+        )
+        Text(
+            "✨", fontSize = 32.sp,
+            modifier = Modifier
+                .offset(x = (-56).dp, y = (-100 + offset2).dp)
+                .align(Alignment.BottomEnd),
+        )
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  AuthForm — Login / Register toggle
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -195,8 +258,8 @@ private fun AuthForm(
     var email           by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val focusManager     = LocalFocusManager.current
-    val isLoading        = uiState is AuthUiState.Loading
+    val focusManager    = LocalFocusManager.current
+    val isLoading       = uiState is AuthUiState.Loading
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -210,9 +273,9 @@ private fun AuthForm(
             label = "auth_title",
         ) { login ->
             Text(
-                text  = if (login) "Welcome back! 👋" else "Create account 🎉",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                text  = if (login) "Đăng nhập" else "Tạo tài khoản 🎉",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Primary,
             )
         }
 
@@ -224,7 +287,7 @@ private fun AuthForm(
             onValueChange = { email = it },
             label         = "Email",
             leadingIcon   = {
-                Icon(Icons.Rounded.Email, contentDescription = null, tint = Mint500)
+                Icon(Icons.Rounded.Email, contentDescription = null, tint = Primary)
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -242,9 +305,9 @@ private fun AuthForm(
         RoundedTextField(
             value         = password,
             onValueChange = { password = it },
-            label         = "Password",
+            label         = "Mật khẩu",
             leadingIcon   = {
-                Icon(Icons.Rounded.Lock, contentDescription = null, tint = Mint500)
+                Icon(Icons.Rounded.Lock, contentDescription = null, tint = Primary)
             },
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -252,7 +315,7 @@ private fun AuthForm(
                         imageVector        = if (passwordVisible) Icons.Rounded.VisibilityOff
                                              else Icons.Rounded.Visibility,
                         contentDescription = "Toggle password visibility",
-                        tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint               = Outline,
                     )
                 }
             },
@@ -277,9 +340,9 @@ private fun AuthForm(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = { onForgotPassword(email) }) {
                     Text(
-                        text  = "Forgot password?",
+                        text  = "Quên mật khẩu?",
                         style = MaterialTheme.typography.labelMedium,
-                        color = Coral500,
+                        color = Primary,
                     )
                 }
             }
@@ -287,18 +350,24 @@ private fun AuthForm(
 
         Spacer(Modifier.height(8.dp))
 
-        // ── Primary action button ─────────────────────────────────────────────
+        // ── Primary button ────────────────────────────────────────────────────
         Button(
             onClick = {
                 focusManager.clearFocus()
                 if (isLoginMode) onLogin(email, password)
                 else             onRegister(email, password)
             },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape    = PillShape,
-            colors   = ButtonDefaults.buttonColors(
-                containerColor = Mint500,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape  = PillShape,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Primary,
                 contentColor   = Color.White,
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 4.dp,
+                pressedElevation = 2.dp,
             ),
             enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
         ) {
@@ -310,7 +379,7 @@ private fun AuthForm(
                 )
             } else {
                 Text(
-                    text  = if (isLoginMode) "Sign In" else "Create Account",
+                    text  = if (isLoginMode) "Đăng nhập" else "Tạo tài khoản",
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -323,13 +392,13 @@ private fun AuthForm(
             verticalAlignment = Alignment.CenterVertically,
             modifier          = Modifier.fillMaxWidth(),
         ) {
-            Divider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
             Text(
-                text  = "  OR  ",
+                text  = "  HOẶC  ",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Outline,
             )
-            Divider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
         }
 
         Spacer(Modifier.height(20.dp))
@@ -337,21 +406,25 @@ private fun AuthForm(
         // ── Google Sign-In button ─────────────────────────────────────────────
         OutlinedButton(
             onClick  = onGoogleSignIn,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape    = PillShape,
-            colors   = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape  = PillShape,
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.White.copy(alpha = 0.6f),
+                contentColor   = MaterialTheme.colorScheme.onSurface,
             ),
-            border  = androidx.compose.foundation.BorderStroke(
-                1.5.dp,
-                MaterialTheme.colorScheme.outline,
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant,
             ),
             enabled = !isLoading,
         ) {
-            Text(text = "🇬", fontSize = 20.sp)
+            // Google G icon colours
+            Text(text = "G", fontSize = 18.sp, color = Color(0xFF4285F4))
             Spacer(Modifier.width(12.dp))
             Text(
-                text  = "Continue with Google",
+                text  = "Tiếp tục với Google",
                 style = MaterialTheme.typography.labelLarge,
             )
         }
@@ -361,10 +434,10 @@ private fun AuthForm(
         // ── Toggle Login / Register ───────────────────────────────────────────
         TextButton(onClick = { isLoginMode = !isLoginMode }) {
             Text(
-                text  = if (isLoginMode) "Don't have an account? Register"
-                        else             "Already have an account? Sign in",
-                style = MaterialTheme.typography.bodySmall,
-                color = Mint500,
+                text  = if (isLoginMode) "Chưa có tài khoản? Đăng ký ngay"
+                        else             "Đã có tài khoản? Đăng nhập",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Primary,
             )
         }
     }
